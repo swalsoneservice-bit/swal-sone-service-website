@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10233f"><title>Event Registration | Swal-Sone Service</title>
+<style>
+:root{--navy:#10233f;--blue:#175cd3;--bg:#f3f7fc;--line:#dbe3ee;--muted:#5c6b80}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;color:#172235}
+header{background:linear-gradient(120deg,#10233f,#175cd3);color:white;text-align:center}.banner{width:100%;max-height:330px;object-fit:cover;display:block}.brand{padding:26px 15px}.brand h1{font-size:clamp(24px,5vw,40px);margin:0}.brand p{margin:5px 0 0}
+main{max-width:920px;margin:22px auto;padding:0 14px 40px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:clamp(15px,3vw,24px);margin-bottom:17px;box-shadow:0 8px 25px #14294a0a}
+h2{font-size:21px;color:var(--navy);margin:0 0 16px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.full{grid-column:1/-1}
+label{display:block;font-weight:650;margin-bottom:6px}input,select,textarea{width:100%;min-width:0;border:1px solid #bdc9d8;border-radius:9px;padding:11px 12px;font:inherit;background:#fff}input[type=file]{padding:8px}
+.hint,small{color:var(--muted);font-size:13px}.btn{border:0;border-radius:10px;padding:13px 18px;font:inherit;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff;width:100%}.secondary{background:#e9eff8;color:var(--navy)}.btn:disabled{opacity:.55;cursor:wait}
+.notice{padding:12px;border-radius:10px;background:#fff7e5;color:#704d00;font-size:14px}.status{display:none;margin-top:12px;padding:12px;border-radius:9px;overflow-wrap:anywhere}.status.ok{display:block;background:#e8f7ee;color:#17683b}.status.err{display:block;background:#fff0f0;color:#a51e25}
+.qr{text-align:center;background:#f8fbff;border:1px dashed #9eb0c6;border-radius:12px;padding:16px}.qr img{max-width:220px;max-height:220px;object-fit:contain;display:block;margin:10px auto}.size-chart{width:100%;border-collapse:collapse;font-size:14px}.size-chart th,.size-chart td{padding:9px;border:1px solid var(--line);text-align:center}.size-chart th{background:#edf3fa}
+.member{border:1px solid var(--line);padding:13px;border-radius:12px;margin:10px 0}.member h3{margin:0 0 10px;font-size:16px}.hidden{display:none!important}footer{text-align:center;color:var(--muted);padding:20px}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.banner{max-height:210px}.size-chart{font-size:12px}.size-chart th,.size-chart td{padding:7px 4px}}
+</style></head>
+<body>
+<header><img id="banner" class="banner hidden" alt="Event banner"><div class="brand" id="brandFallback"><h1 id="heroTitle">SWAL-SONE SERVICE</h1><p id="heroSubtitle">Choose an event and register online</p></div></header>
+<main>
+<section class="card"><h2>Choose an Event</h2><div class="grid">
+<div class="full"><label for="eventSelect">Event *</label><select id="eventSelect" required></select></div>
+<div><label for="eventDate">Event Date</label><input id="eventDate" readonly></div>
+<div><label for="feeDisplay">Registration Fee</label><input id="feeDisplay" readonly value="Select category"></div>
+<div class="full"><p id="eventDescription" class="hint"></p></div>
+</div></section>
+<form id="regForm">
+<section class="card"><h2>Registration Details</h2><div class="grid">
+<div><label for="race">Distance / Ticket Category *</label><select id="race" name="raceCategory" required></select></div>
+<div id="participationWrap" class="hidden"><label for="participation">Participation Type *</label><select id="participation" name="participationType"><option value="Individual">Individual</option><option value="Relay">Relay Team</option></select></div>
+<div id="itraWrap" class="hidden"><label for="itraId">ITRA ID <span id="itraHint">(optional)</span></label><input id="itraId" name="itraId" maxlength="60" placeholder="Enter ITRA ID if available"></div>
+<div><label for="name">Full Name / Team Captain *</label><input id="name" name="name" required maxlength="120"></div>
+<div><label for="gender">Gender *</label><select id="gender" name="gender" required><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div><label for="nationality">Nationality *</label><input id="nationality" name="nationality" value="Myanmar" required></div>
+<div><label for="student">Student? *</label><select id="student" name="student" required><option value="">Select</option><option>Yes</option><option>No</option></select></div>
+<div class="full"><label for="nationalId">National ID / Passport <span id="nidHint">*</span></label><input id="nationalId" name="nationalId" maxlength="80"><small>Students may leave this blank. Non-students must provide an ID.</small></div>
+<div><label for="dob">Date of Birth *</label><input id="dob" name="dob" type="date" required></div>
+<div><label for="fatherName">Father Name *</label><input id="fatherName" name="fatherName" required maxlength="120"></div>
+<div><label for="email">Email *</label><input id="email" name="email" type="email" required maxlength="160"></div>
+<div><label for="mobile">Mobile No. *</label><input id="mobile" name="mobile" type="tel" required maxlength="40"></div>
+<div><label for="city">City *</label><input id="city" name="city" value="Yangon" required></div>
+<div><label for="bloodType">Blood Type</label><select id="bloodType" name="bloodType"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option><option>Unknown</option></select></div>
+<div><label for="emergencyContact">Emergency Contact No. *</label><input id="emergencyContact" name="emergencyContact" required type="tel" maxlength="40"></div>
+<div><label for="shirtSize">T-shirt Size *</label><select id="shirtSize" name="shirtSize" required><option value="">Select</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></div>
+</div>
+<div id="relayWrap" class="full hidden"><h2 style="margin-top:20px">Relay Team Members</h2><p class="hint">The captain is already listed above. Add the other team members. Their details are required for team administration; ticket policy can be adjusted for individual bibs.</p><div id="relayMembers"></div><button class="btn secondary" type="button" id="addMember">+ Add Relay Member</button></div>
+</section>
+<section class="card"><h2>T-shirt Size Chart</h2><p class="hint">Sample measurements only — confirm with your supplier before publishing.</p><div style="overflow-x:auto"><table class="size-chart"><thead><tr><th>Size</th><th>Chest (in)</th><th>Length (in)</th></tr></thead><tbody><tr><td>XS</td><td>34</td><td>25</td></tr><tr><td>S</td><td>36</td><td>26</td></tr><tr><td>M</td><td>38</td><td>27</td></tr><tr><td>L</td><td>40</td><td>28</td></tr><tr><td>XL</td><td>42</td><td>29</td></tr><tr><td>2XL</td><td>44</td><td>30</td></tr><tr><td>3XL</td><td>46</td><td>31</td></tr></tbody></table></div></section>
+<section class="card"><h2>Payment</h2><div class="qr"><strong>KBZPay QR Code</strong><img id="paymentQr" alt="KBZPay QR code"><p class="hint">Pay the amount shown for your selected event/category. Uploading a screenshot does not mean payment is verified.</p></div>
+<div style="margin-top:15px"><label for="paymentReference">Payment Reference (optional)</label><input id="paymentReference" name="paymentReference" maxlength="100"></div>
+<div style="margin-top:15px"><label for="screenshot">Payment Screenshot * (JPG/PNG/WebP, max 5 MB)</label><input id="screenshot" type="file" accept="image/jpeg,image/png,image/webp" required><small>Admin checks the actual KBZPay receipt before verifying payment.</small></div></section>
+<section class="card"><div class="notice">By submitting, you agree that the organizer may use the information to administer this event. Do not upload unrelated personal data.</div><p><button class="btn primary" id="submitBtn" type="submit">Submit Registration</button></p><div id="status" class="status" role="status" aria-live="polite"></div></section>
+</form>
+<section class="card"><h2>Find Approved Ticket</h2><p class="hint">After the organizer approves your registration, enter your Registration ID and the same email address used during registration to view and download your ticket.</p><div class="grid"><div><label for="ticketRegId">Registration ID</label><input id="ticketRegId" placeholder="e.g. EVT-20261019-AB12CD"></div><div><label for="ticketEmail">Registration Email</label><input id="ticketEmail" type="email"></div><div class="full"><button class="btn primary" id="findTicket" type="button">Find My Ticket</button></div></div><div id="ticketStatus" class="status" role="status"></div><div id="ticketArea" class="hidden"></div></section>
+</main><footer>© <span id="year"></span> Swal-Sone Service</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="config.js"></script>
+<script>
+const $=id=>document.getElementById(id), cfg=window.APP_CONFIG||{}, events=cfg.events||[];
+$('year').textContent=new Date().getFullYear();
+$('paymentQr').src=cfg.qrImageUrl||'kbzpay-qr.jpg';
+function fill(select,items,placeholder){select.innerHTML='';const o=document.createElement('option');o.value='';o.textContent=placeholder;select.appendChild(o);items.forEach(v=>{const x=document.createElement('option');x.value=v;x.textContent=v;select.appendChild(x);});}
+function selectedEvent(){return events.find(e=>e.id===$('eventSelect').value)}
+function updateEvent(){
+ const ev=selectedEvent();if(!ev)return;
+ $('heroTitle').textContent=ev.title||ev.name;$('heroSubtitle').textContent=cfg.brandName||'Swal-Sone Service';
+ if(ev.banner){$('banner').onerror=()=>{$('banner').classList.add('hidden');$('brandFallback').classList.remove('hidden');};$('banner').src=ev.banner;$('banner').classList.remove('hidden');$('brandFallback').classList.add('hidden');}else{$('banner').classList.add('hidden');$('brandFallback').classList.remove('hidden');}
+ $('eventDate').value=ev.date||'To be announced';$('eventDescription').textContent=ev.description||'';
+ fill($('race'),ev.categories||[],'Select category');$('feeDisplay').value='Select category';
+ const relay=!!ev.relay;$('participationWrap').classList.toggle('hidden',!relay);$('participation').required=relay;
+ $('itraWrap').classList.toggle('hidden',ev.id!=='trail-run');$('itraId').required=!!(ev.fields&&ev.fields.itraId&&ev.fields.itraId.required);
+ $('relayWrap').classList.add('hidden');$('relayMembers').innerHTML='';
+}
+$('eventSelect').addEventListener('change',updateEvent);
+$('race').addEventListener('change',()=>{const ev=selectedEvent(),fee=ev&&ev.fees&&ev.fees[$('race').value];$('feeDisplay').value=fee==null?'Fee not configured':Number(fee).toLocaleString()+' MMK';});
+events.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.name;$('eventSelect').appendChild(o);});if(events.length){$('eventSelect').value=events[0].id;updateEvent();}
+$('student').addEventListener('change',()=>{$('nationalId').required=$('student').value==='No';$('nidHint').textContent=$('student').value==='Yes'?'(optional for students)':'*';if($('student').value==='Yes')$('nationalId').value='';});
+$('participation').addEventListener('change',()=>{const isRelay=$('participation').value==='Relay';$('relayWrap').classList.toggle('hidden',!isRelay);$('relayMembers').querySelectorAll('input,select').forEach(el=>{el.disabled=!isRelay;});if(isRelay&&!$('relayMembers').children.length)addMember();});
+let memberCount=0;
+function addMember(){
+ if(memberCount>=5){alert('Maximum 6 people per team including captain.');return;}memberCount++;
+ const box=document.createElement('div');box.className='member';box.innerHTML=`<h3>Relay Member ${memberCount}</h3><div class="grid"><div><label>Name *</label><input name="relayName" required maxlength="120"></div><div><label>Gender *</label><select name="relayGender" required><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div><div><label>T-shirt Size *</label><select name="relayShirtSize" required><option value="">Select</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></div><div><label>Mobile (optional)</label><input name="relayMobile" type="tel"></div></div><button type="button" class="btn secondary removeMember">Remove member</button>`;
+ box.querySelector('.removeMember').onclick=()=>{box.remove();memberCount--;[...$('relayMembers').children].forEach((el,i)=>el.querySelector('h3').textContent='Relay Member '+(i+1));};if($('participation').value!=='Relay')box.querySelectorAll('input,select').forEach(el=>el.disabled=true);$('relayMembers').appendChild(box);
+}
+$('addMember').onclick=addMember;
+async function api(payload){const res=await fetch(cfg.apiUrl,{method:'POST',body:JSON.stringify(payload)});const data=await res.json();if(!data.ok)throw new Error(data.error||'Request failed');return data;}
+function show(el,msg,ok){el.textContent=msg;el.className='status '+(ok?'ok':'err');}
+$('regForm').addEventListener('submit',async evnt=>{
+ evnt.preventDefault();const ev=selectedEvent();if(!ev){show($('status'),'Please choose an event.',false);return;}
+ const file=$('screenshot').files[0];if(!file||file.size>5*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type)){show($('status'),'Attach a JPG, PNG or WebP screenshot no larger than 5 MB.',false);return;}
+ if(ev.relay&&$('participation').value==='Relay'&&memberCount<1){show($('status'),'Add at least one relay team member.',false);return;}
+ const btn=$('submitBtn');btn.disabled=true;btn.textContent='Submitting…';
+ try{
+  const data={};new FormData($('regForm')).forEach((v,k)=>{if(k!=='screenshot')data[k]=v;});
+  data.action='register';data.eventId=ev.id;data.eventName=ev.name;data.registrationFee=(ev.fees||{})[$('race').value]??'';
+  data.relayMembers=[...$('relayMembers').querySelectorAll('.member')].map(box=>({name:box.querySelector('[name=relayName]').value,gender:box.querySelector('[name=relayGender]').value,shirtSize:box.querySelector('[name=relayShirtSize]').value,mobile:box.querySelector('[name=relayMobile]').value}));
+  data.screenshot={name:file.name,mimeType:file.type,base64:await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=reject;r.readAsDataURL(file);})};
+  const result=await api(data);show($('status'),'Registration received. ID: '+result.registrationId+'. Payment status: Pending. Ticket becomes available only after admin approval.',true);
+  $('regForm').reset();$('nationality').value='Myanmar';$('city').value='Yangon';$('student').dispatchEvent(new Event('change'));$('eventSelect').value=events[0].id;updateEvent();
+ }catch(err){show($('status'),'Could not submit: '+err.message,false);}finally{btn.disabled=false;btn.textContent='Submit Registration';}
+});
+$('findTicket').onclick=async()=>{
+ const box=$('ticketStatus');$('ticketArea').classList.add('hidden');$('ticketArea').innerHTML='';
+ try{
+  const d=await api({action:'getTicket',registrationId:$('ticketRegId').value.trim(),email:$('ticketEmail').value.trim()});
+  if(!d.approved){show(box,'Your registration has not been approved yet. Please check again later.',false);return;}
+  show(box,'Ticket approved. You can download or print it below.',true);renderTicket(d.ticket);
+ }catch(e){show(box,e.message,false);}
+};
+function renderTicket(t){
+ const area=$('ticketArea');area.classList.remove('hidden');
+ area.innerHTML=`<div id="ticket" style="margin-top:16px;border:2px solid #10233f;border-radius:16px;padding:20px;background:white;max-width:640px"><div style="text-align:center;border-bottom:2px dashed #b8c5d6;padding-bottom:12px"><h2 style="margin:0">EVENT ENTRY TICKET</h2><div>${escapeHtml(t.eventName)}</div><strong>${escapeHtml(t.ticketId)}</strong></div><div style="display:grid;grid-template-columns:1fr 150px;gap:12px;align-items:center;padding-top:15px"><div><p><b>Name:</b> ${escapeHtml(t.name)}</p><p><b>Gender:</b> ${escapeHtml(t.gender)}</p><p><b>T-shirt Size:</b> ${escapeHtml(t.shirtSize)}</p><p><b>Distance / Category:</b> ${escapeHtml(t.distance)}</p><p><b>Type:</b> ${escapeHtml(t.participationType||'Individual')}</p></div><div id="ticketQr"></div></div><p class="hint">Present this ticket at event check-in. QR contains Ticket ID, Name, Gender, T-shirt Size and Distance.</p></div><p><button class="btn primary" id="printTicket">Download / Save Ticket as PDF</button></p>`;
+ const payload=JSON.stringify({ticketId:t.ticketId,name:t.name,gender:t.gender,tShirtSize:t.shirtSize,distance:t.distance});
+ new QRCode($('ticketQr'),{text:payload,width:140,height:140,correctLevel:QRCode.CorrectLevel.M});
+ $('printTicket').onclick=()=>{const w=window.open('','_blank');if(!w){alert('Allow pop-ups to save ticket.');return;}w.document.write('<html><head><title>Ticket '+escapeHtml(t.ticketId)+'</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font:16px Arial;padding:20px}#ticket{max-width:640px;margin:auto;border:2px solid #10233f;border-radius:14px;padding:20px}#ticketQr img{width:140px}button{display:none}@media print{body{padding:0}}</style></head><body>'+ $('ticket').outerHTML+'<script>window.onload=()=>window.print()<\\/script></body></html>');w.document.close();};
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+</script></body></html>
