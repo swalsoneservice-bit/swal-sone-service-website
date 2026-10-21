@@ -1,23 +1,707 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Event Registration Admin</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f3f7fc;color:#172235;font:15px/1.5 system-ui,Arial}main{max-width:1400px;margin:20px auto;padding:12px}.card{background:white;border:1px solid #dbe3ee;border-radius:14px;padding:17px;margin-bottom:15px}input,select,button{font:inherit;padding:9px;border:1px solid #bdc9d8;border-radius:8px}button{background:#175cd3;color:white;border:0;cursor:pointer}.row{display:flex;gap:8px;flex-wrap:wrap}.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{background:#edf3fa;padding:10px 13px;border-radius:10px}.muted{color:#58677b}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:8px;border-bottom:1px solid #dbe3ee;text-align:left;vertical-align:top;min-width:90px}th{background:#edf3fa;position:sticky;top:0}td select{max-width:125px}td input{max-width:170px}.actioncell{min-width:250px}
-</style></head><body><main><h1>Swal-Sone Service — Event Admin</h1><div class="card"><p class="muted">Use this private page to manually review KBZPay receipts and approve entries. Ticket access requires BOTH Payment = Verified and Approval = Approved. Keep the password private.</p><div class="row"><input id="password" type="password" placeholder="Admin password" autocomplete="current-password"><button id="load">Load registrations</button><button id="csv">Export CSV</button></div><p id="message"></p></div><div class="card"><h2>Summary</h2><div id="summary" class="stats"></div></div><div class="card"><h2>Registrations</h2><div class="tablewrap"><table><thead><tr><th>Reg ID / Ticket ID</th><th>Event / Category</th><th>Participant / Contact</th><th>Relay members / ITRA ID</th><th>Fee / T-shirt</th><th>Payment screenshot</th><th>Payment</th><th>Approval</th><th>Admin note</th><th>Save</th></tr></thead><tbody id="rows"></tbody></table></div></div></main><script src="config.js"></script><script>
-const $=id=>document.getElementById(id);let rows=[];
-async function api(payload){const r=await fetch(APP_CONFIG.apiUrl,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(!d.ok)throw Error(d.error||'Request failed');return d;}
-$('load').onclick=async()=>{ $('message').textContent='Loading…';try{const d=await api({action:'adminList',adminPassword:$('password').value});rows=d.rows;summary(d.summary);render();$('message').textContent='Loaded '+rows.length+' registrations.';}catch(e){$('message').textContent=e.message;}};
-function summary(s){$('summary').innerHTML='';[['Events',s.events],['Categories',s.categories],['T-shirt sizes',s.shirts],['Payments',s.payments],['Approvals',s.approvals]].forEach(([title,obj])=>{const d=document.createElement('div');d.className='stat';d.innerHTML='<b>'+title+'</b><br>'+Object.entries(obj||{}).map(([k,v])=>`${esc(k)}: ${v}`).join('<br>');$('summary').appendChild(d);});}
-function render(){const body=$('rows');body.innerHTML='';rows.forEach(r=>{const tr=document.createElement('tr');const td=(html)=>{const x=document.createElement('td');x.innerHTML=html;tr.appendChild(x);return x;};
-td('<b>'+esc(r['Registration ID'])+'</b><br>Ticket: '+esc(r['Ticket ID']||'Not issued'));
-td('<b>'+esc(r['Event Name'])+'</b><br>'+esc(r['Race Category / Distance'])+'<br>'+esc(r['Participation Type']));
-td('<b>'+esc(r.Name)+'</b><br>'+esc(r.Gender)+' / '+esc(r['T-shirt Size'])+'<br>'+esc(r.Email)+'<br>'+esc(r['Mobile No']));
-let members='';try{members=JSON.parse(r['Relay Members JSON']||'[]').map(m=>`${m.name} (${m.gender}, ${m.shirtSize})`).join('<br>')||'—'}catch(e){members='—'}
-td(members+'<br><small>ITRA: '+esc(r['ITRA ID']||'—')+'</small>');
-td(esc(r['Registration Fee (MMK)']||'Not set')+' MMK<br>Shirt: '+esc(r['T-shirt Size']));
-td(r['Screenshot File ID']?'<a target="_blank" rel="noopener" href="https://drive.google.com/open?id='+encodeURIComponent(r['Screenshot File ID'])+'">Open private screenshot</a>':'—');
-const pay=td('');const paySel=select(['Pending','Verified','Rejected'],r['Payment Status']);pay.appendChild(paySel);
-const approval=td('');const approvalSel=select(['Pending','Approved','Rejected'],r['Approval Status']);approval.appendChild(approvalSel);
-const note=td('');const noteInput=document.createElement('input');noteInput.value=r['Admin Note']||'';noteInput.placeholder='Admin note';note.appendChild(noteInput);
-const action=td('');action.className='actioncell';const btn=document.createElement('button');btn.textContent='Save review';btn.onclick=async()=>{btn.disabled=true;try{const d=await api({action:'updateRecord',adminPassword:$('password').value,rowNumber:r.rowNumber,paymentStatus:paySel.value,approvalStatus:approvalSel.value,adminNote:noteInput.value});r['Payment Status']=d.paymentStatus;r['Approval Status']=d.approvalStatus;r['Ticket ID']=d.ticketId||'';r['Admin Note']=noteInput.value;$('message').textContent='Saved. Ticket is available only if payment is Verified and approval is Approved.';render();}catch(e){$('message').textContent=e.message;}finally{btn.disabled=false;}};action.appendChild(btn);body.appendChild(tr);});}
-function select(items,value){const s=document.createElement('select');items.forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;o.selected=x===value;s.appendChild(o)});return s;}
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-$('csv').onclick=()=>{if(!rows.length){$('message').textContent='Load records first.';return;}const headers=Object.keys(rows[0]).filter(k=>k!=='rowNumber'&&k!=='Screenshot File ID');const csv=[headers,...rows.map(r=>headers.map(h=>r[h]??''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='event-registrations.csv';a.click();URL.revokeObjectURL(a.href);};
-</script></body></html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Swal-Sone Service | Event Admin</title>
+
+  <style>
+    :root {
+      --primary: #175cd3;
+      --background: #f3f7fc;
+      --border: #dbe3ee;
+      --text: #172235;
+      --muted: #58677b;
+      --green: #067647;
+      --red: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font: 15px/1.55 system-ui, Arial, sans-serif;
+    }
+
+    main {
+      max-width: 1500px;
+      margin: 24px auto;
+      padding: 0 14px;
+    }
+
+    h1 { font-size: 25px; margin-bottom: 6px; }
+    h2 { font-size: 19px; margin-top: 0; }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px #17223508;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 9px;
+    }
+
+    input, select, button {
+      font: inherit;
+      padding: 10px 12px;
+      border: 1px solid #bdc9d8;
+      border-radius: 8px;
+    }
+
+    input, select {
+      max-width: 100%;
+      background: white;
+      color: var(--text);
+    }
+
+    button {
+      border: 0;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover { filter: brightness(.94); }
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .secondary { background: #475467; }
+    .danger { background: var(--red); }
+
+    #password { width: min(320px, 100%); }
+    #message { white-space: pre-line; overflow-wrap: anywhere; }
+    #message.error { color: var(--red); }
+    #message.success { color: var(--green); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      background: #edf3fa;
+      border-radius: 10px;
+      padding: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .stat-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .stat-line {
+      font-size: 13px;
+      border-top: 1px solid #dbe3ee;
+      padding-top: 4px;
+      margin-top: 4px;
+    }
+
+    .tablewrap {
+      overflow: auto;
+      max-height: 72vh;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: white;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      min-width: 105px;
+    }
+
+    th {
+      background: #edf3fa;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td select { min-width: 115px; }
+    td input { min-width: 170px; }
+    .actioncell { min-width: 145px; }
+    .record-id { overflow-wrap: anywhere; }
+    .empty { padding: 24px; text-align: center; color: var(--muted); }
+
+    a { color: var(--primary); }
+
+    @media (max-width: 600px) {
+      main { margin: 14px auto; padding: 0 9px; }
+      .card { padding: 13px; }
+      h1 { font-size: 21px; }
+      #password { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <header class="card">
+    <h1>Swal-Sone Service — Event Admin</h1>
+    <p class="muted">
+      Review registrations and payment receipts.
+      A ticket can be issued only when Payment is Verified
+      and Approval is Approved.
+    </p>
+
+    <div class="row">
+      <input
+        id="password"
+        type="password"
+        placeholder="Admin password"
+        autocomplete="current-password"
+        aria-label="Admin password"
+      >
+      <button id="loadBtn" type="button">Load registrations</button>
+      <button id="csvBtn" type="button" class="secondary">Export CSV</button>
+    </div>
+
+    <p id="message" role="status" aria-live="polite"></p>
+    <p class="muted small">
+      Keep your admin password private. Do not share it in public.
+    </p>
+  </header>
+
+  <section class="card">
+    <h2>Registration Summary</h2>
+    <div id="summary" class="stats">
+      <p class="muted">Load registrations to view summary.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Registrations</h2>
+    <p class="muted small">
+      Save each registration review separately. Reload the list to confirm
+      the saved status.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Registration / Ticket</th>
+            <th>Event / Category</th>
+            <th>Participant / Contact</th>
+            <th>Relay / ITRA</th>
+            <th>Fee / T-shirt</th>
+            <th>Payment Screenshot</th>
+            <th>Payment Status</th>
+            <th>Approval Status</th>
+            <th>Admin Note</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr>
+            <td colspan="10" class="empty">
+              Please load registrations.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="muted small">
+    © <span id="year"></span> Swal-Sone Service
+  </footer>
+</main>
+
+<script src="config.js"></script>
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  let registrations = [];
+  let loading = false;
+
+  $("year").textContent = new Date().getFullYear();
+
+  function setMessage(message, type = "") {
+    const el = $("message");
+    el.textContent = message;
+    el.className = type;
+  }
+
+  function requireConfig() {
+    if (
+      !window.APP_CONFIG ||
+      !window.APP_CONFIG.apiUrl ||
+      !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(
+        window.APP_CONFIG.apiUrl
+      )
+    ) {
+      throw new Error(
+        "API URL is missing or invalid. Please check config.js."
+      );
+    }
+  }
+
+  async function api(payload) {
+    requireConfig();
+
+    const response = await fetch(window.APP_CONFIG.apiUrl, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error("Network error: HTTP " + response.status);
+    }
+
+    let data;
+
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error(
+        "The API did not return JSON. Check the Apps Script deployment."
+      );
+    }
+
+    if (!data || data.ok !== true) {
+      throw new Error(
+        data && data.error ? data.error : "The API request failed."
+      );
+    }
+
+    return data;
+  }
+
+  function value(record, key) {
+    return record && record[key] != null
+      ? String(record[key])
+      : "";
+  }
+
+  function makeCell(row, content) {
+    const cell = document.createElement("td");
+    if (content instanceof Node) {
+      cell.appendChild(content);
+    } else {
+      cell.textContent = content == null ? "" : String(content);
+    }
+    row.appendChild(cell);
+    return cell;
+  }
+
+  function makeSelect(options, currentValue) {
+    const select = document.createElement("select");
+
+    options.forEach(option => {
+      const el = document.createElement("option");
+      el.value = option;
+      el.textContent = option;
+      el.selected = option === currentValue;
+      select.appendChild(el);
+    });
+
+    return select;
+  }
+
+  function addLine(parent, text, className = "") {
+    const el = document.createElement("div");
+    el.textContent = text;
+    if (className) el.className = className;
+    parent.appendChild(el);
+    return el;
+  }
+
+  function renderSummary(summary) {
+    const container = $("summary");
+    container.replaceChildren();
+
+    const sections = [
+      ["Events", summary && summary.events],
+      ["Categories", summary && summary.categories],
+      ["T-shirt Sizes", summary && summary.shirts],
+      ["Payments", summary && summary.payments],
+      ["Approvals", summary && summary.approvals]
+    ];
+
+    sections.forEach(([title, data]) => {
+      const card = document.createElement("div");
+      card.className = "stat";
+
+      addLine(card, title, "stat-title");
+
+      if (data && typeof data === "object" &&
+          Object.keys(data).length > 0) {
+        Object.entries(data).forEach(([key, count]) => {
+          addLine(card, key + ": " + count, "stat-line");
+        });
+      } else {
+        addLine(card, "No data", "muted small");
+      }
+
+      container.appendChild(card);
+    });
+  }
+
+  function getRelayMembers(record) {
+    const raw = value(record, "Relay Members JSON");
+    if (!raw) return [];
+
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function screenshotLink(fileId) {
+    if (!fileId) return "No screenshot uploaded";
+
+    const link = document.createElement("a");
+    link.href = "https://drive.google.com/open?id=" +
+      encodeURIComponent(fileId);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Open screenshot";
+    link.title = "Open the uploaded payment screenshot";
+    return link;
+  }
+
+  function renderRegistrations() {
+    const body = $("rows");
+    body.replaceChildren();
+
+    if (!registrations.length) {
+      const tr = document.createElement("tr");
+      const td = makeCell(tr, "No registrations found.");
+      td.colSpan = 10;
+      td.className = "empty";
+      body.appendChild(tr);
+      return;
+    }
+
+    registrations.forEach(record => {
+      const tr = document.createElement("tr");
+
+      // Registration ID and Ticket ID
+      const idCell = document.createElement("div");
+      idCell.className = "record-id";
+
+      const regId = value(record, "Registration ID");
+      const ticketId = value(record, "Ticket ID");
+
+      addLine(idCell, "Reg ID: " + (regId || "—"));
+      addLine(idCell, "Ticket: " + (ticketId || "Not issued"));
+
+      makeCell(tr, idCell);
+
+      // Event and category
+      const eventCell = document.createElement("div");
+      addLine(eventCell, value(record, "Event Name") || "—");
+      addLine(
+        eventCell,
+        value(record, "Race Category/Distance") || "—"
+      );
+      addLine(
+        eventCell,
+        value(record, "Participation Type") || "—",
+        "muted"
+      );
+      makeCell(tr, eventCell);
+
+      // Participant and contact
+      const participantCell = document.createElement("div");
+      addLine(participantCell, value(record, "Name") || "—");
+      addLine(
+        participantCell,
+        "Gender: " + (value(record, "Gender") || "—")
+      );
+      addLine(
+        participantCell,
+        "Email: " + (value(record, "Email") || "—")
+      );
+      addLine(
+        participantCell,
+        "Mobile: " + (value(record, "Mobile No") || "—")
+      );
+      makeCell(tr, participantCell);
+
+      // Relay members and ITRA ID
+      const relayCell = document.createElement("div");
+      const members = getRelayMembers(record);
+
+      if (members.length) {
+        members.forEach((member, index) => {
+          const name = member && member.name
+            ? String(member.name)
+            : "Member " + (index + 1);
+          const gender = member && member.gender
+            ? String(member.gender)
+            : "—";
+          const shirt = member && member.shirtSize
+            ? String(member.shirtSize)
+            : "—";
+
+          addLine(
+            relayCell,
+            name + " (" + gender + ", " + shirt + ")"
+          );
+        });
+      } else {
+        addLine(relayCell, "No relay members");
+      }
+
+      addLine(
+        relayCell,
+        "ITRA ID: " + (value(record, "ITRA ID") || "—"),
+        "muted small"
+      );
+      makeCell(tr, relayCell);
+
+      // Fee and T-shirt
+      const feeCell = document.createElement("div");
+      addLine(
+        feeCell,
+        "Fee: " + (value(record, "Registration Fee") || "—")
+      );
+      addLine(
+        feeCell,
+        "T-shirt: " + (value(record, "T-shirt Size") || "—")
+      );
+      addLine(
+        feeCell,
+        "Participants: " + (value(record, "Participant Count") || "1"),
+        "muted small"
+      );
+      makeCell(tr, feeCell);
+
+      // Screenshot
+      makeCell(tr, screenshotLink(value(record, "Screenshot File ID")));
+
+      // Payment status
+      const paymentSelect = makeSelect(
+        ["Pending", "Verified", "Rejected"],
+        value(record, "Payment Status") || "Pending"
+      );
+      makeCell(tr, paymentSelect);
+
+      // Approval status
+      const approvalSelect = makeSelect(
+        ["Pending", "Approved", "Rejected"],
+        value(record, "Approval Status") || "Pending"
+      );
+      makeCell(tr, approvalSelect);
+
+      // Admin note
+      const noteInput = document.createElement("input");
+      noteInput.type = "text";
+      noteInput.maxLength = 500;
+      noteInput.placeholder = "Admin note";
+      noteInput.value = value(record, "Admin Note");
+      noteInput.setAttribute("aria-label", "Admin note");
+      makeCell(tr, noteInput);
+
+      // Save action
+      const actionCell = makeCell(tr, "");
+      actionCell.className = "actioncell";
+
+      const saveButton = document.createElement("button");
+      saveButton.type = "button";
+      saveButton.textContent = "Save review";
+
+      saveButton.addEventListener("click", async () => {
+        const password = $("password").value;
+
+        if (!password) {
+          setMessage("Enter the admin password first.", "error");
+          $("password").focus();
+          return;
+        }
+
+        const rowNumber = Number(record.rowNumber);
+
+        if (!Number.isInteger(rowNumber) || rowNumber < 2) {
+          setMessage(
+            "This record has no valid row number. Reload registrations.",
+            "error"
+          );
+          return;
+        }
+
+        saveButton.disabled = true;
+        setMessage("Saving review…");
+
+        try {
+          const result = await api({
+            action: "updateRecord",
+            adminPassword: password,
+            rowNumber: rowNumber,
+            paymentStatus: paymentSelect.value,
+            approvalStatus: approvalSelect.value,
+            adminNote: noteInput.value.trim()
+          });
+
+          record["Payment Status"] =
+            result.paymentStatus || paymentSelect.value;
+          record["Approval Status"] =
+            result.approvalStatus || approvalSelect.value;
+          record["Ticket ID"] = result.ticketId || "";
+          record["Admin Note"] = noteInput.value.trim();
+
+          setMessage(
+            "Review saved successfully.\n" +
+            "Ticket access requires Payment = Verified " +
+            "and Approval = Approved.",
+            "success"
+          );
+
+          renderRegistrations();
+        } catch (error) {
+          setMessage(
+            "Could not save review: " +
+            (error.message || "Unknown error"),
+            "error"
+          );
+        } finally {
+          saveButton.disabled = false;
+        }
+      });
+
+      actionCell.appendChild(saveButton);
+      body.appendChild(tr);
+    });
+  }
+
+  async function loadRegistrations() {
+    if (loading) return;
+
+    const password = $("password").value;
+
+    if (!password) {
+      setMessage("Please enter the admin password.", "error");
+      $("password").focus();
+      return;
+    }
+
+    loading = true;
+    $("loadBtn").disabled = true;
+    setMessage("Loading registrations…");
+
+    try {
+      const data = await api({
+        action: "adminList",
+        adminPassword: password
+      });
+
+      if (!Array.isArray(data.rows)) {
+        throw new Error(
+          "Unexpected API response: registration rows are missing."
+        );
+      }
+
+      registrations = data.rows;
+      renderSummary(data.summary || {});
+      renderRegistrations();
+
+      setMessage(
+        "Loaded " + registrations.length + " registrations.",
+        "success"
+      );
+    } catch (error) {
+      setMessage(
+        "Could not load registrations: " +
+        (error.message || "Unknown error"),
+        "error"
+      );
+    } finally {
+      loading = false;
+      $("loadBtn").disabled = false;
+    }
+  }
+
+  function csvEscape(value) {
+    let text = value == null ? "" : String(value);
+
+    // Prevent spreadsheet formula injection in exported CSV.
+    if (/^[\s]*[=+\-@]/.test(text)) {
+      text = "'" + text;
+    }
+
+    return '"' + text.replace(/"/g, '""') + '"';
+  }
+
+  function exportCSV() {
+    if (!registrations.length) {
+      setMessage("Load registrations before exporting CSV.", "error");
+      return;
+    }
+
+    const headers = Object.keys(registrations[0]).filter(key =>
+      key !== "rowNumber" &&
+      key !== "Screenshot File ID"
+    );
+
+    const lines = [
+      headers.map(csvEscape).join(","),
+      ...registrations.map(record =>
+        headers.map(header => csvEscape(record[header])).join(",")
+      )
+    ];
+
+    const blob = new Blob(
+      ["\ufeff" + lines.join("\r\n")],
+      { type: "text/csv;charset=utf-8;" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "swal-sone-event-registrations.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setMessage("CSV export prepared.", "success");
+  }
+
+  $("loadBtn").addEventListener("click", loadRegistrations);
+  $("csvBtn").addEventListener("click", exportCSV);
+
+  $("password").addEventListener("keydown", event => {
+    if (event.key === "Enter") loadRegistrations();
+  });
+
+  try {
+    requireConfig();
+    setMessage("Configuration loaded. Enter your admin password.");
+  } catch (error) {
+    setMessage(error.message, "error");
+  }
+})();
+</script>
+</body>
+</html>
