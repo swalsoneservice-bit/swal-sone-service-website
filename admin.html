@@ -185,6 +185,27 @@
       Keep your admin password private. Do not share it in public.
     </p>
   </header>
+  
+  
+<section class="card">
+  <h2>Event Settings — Date & Registration Fee</h2>
+  <p class="muted">
+    Set the date and fee for each event category.
+    Changes are saved to the EventSettings Google Sheets tab.
+  </p>
+
+  <div class="row">
+    <button id="loadEventSettingsBtn" type="button" class="secondary">
+      Load Event Settings
+    </button>
+    <button id="saveEventSettingsBtn" type="button">
+      Save Event Settings
+    </button>
+  </div>
+
+  <p id="eventSettingsMessage" role="status" aria-live="polite"></p>
+  <div id="eventSettingsContainer"></div>
+</section>
 
   <section class="card">
     <h2>Registration Summary</h2>
@@ -294,6 +315,183 @@
 
     return data;
   }
+  
+const settingsMessage = document.getElementById("eventSettingsMessage");
+const settingsContainer = document.getElementById("eventSettingsContainer");
+
+let savedEventSettings = [];
+
+function showSettingsMessage(message, success = false) {
+  settingsMessage.textContent = message;
+  settingsMessage.className = success ? "success" : "error";
+}
+
+function renderEventSettings(settings = []) {
+  const configEvents = (window.APP_CONFIG && window.APP_CONFIG.events) || [];
+  const savedById = Object.fromEntries(
+    settings.map(event => [event.eventId, event])
+  );
+
+  settingsContainer.replaceChildren();
+
+  configEvents.forEach(event => {
+    const saved = savedById[event.id] || {};
+    const categories = event.categories || [];
+    const dateValue = saved.date || "";
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const heading = document.createElement("h2");
+    heading.textContent = event.name;
+    card.appendChild(heading);
+
+    const dateLabel = document.createElement("label");
+    dateLabel.textContent = "Event Date";
+    dateLabel.style.display = "block";
+
+    const dateInput = document.createElement("input");
+    dateInput.type = "date";
+    dateInput.className = "event-date";
+    dateInput.value = /^\d{4}-\d{2}-\d{2}$/.test(dateValue)
+      ? dateValue : "";
+    dateInput.style.width = "100%";
+    dateInput.dataset.eventId = event.id;
+    dateLabel.appendChild(dateInput);
+    card.appendChild(dateLabel);
+
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.marginTop = "12px";
+
+    const head = document.createElement("tr");
+    ["Category / Distance", "Registration Fee (MMK)"].forEach(text => {
+      const th = document.createElement("th");
+      th.textContent = text;
+      head.appendChild(th);
+    });
+
+    const thead = document.createElement("thead");
+    thead.appendChild(head);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    categories.forEach(category => {
+      const tr = document.createElement("tr");
+
+      const nameCell = document.createElement("td");
+      nameCell.textContent = category;
+      tr.appendChild(nameCell);
+
+      const feeCell = document.createElement("td");
+      const feeInput = document.createElement("input");
+      feeInput.type = "number";
+      feeInput.min = "0";
+      feeInput.step = "1";
+      feeInput.placeholder = "Enter fee in MMK";
+      feeInput.className = "event-fee";
+      feeInput.dataset.eventId = event.id;
+      feeInput.dataset.category = category;
+      feeInput.style.width = "100%";
+
+      const fee = saved.fees &&
+        Object.prototype.hasOwnProperty.call(saved.fees, category)
+        ? saved.fees[category]
+        : "";
+
+      feeInput.value = fee === null || fee === undefined ? "" : fee;
+      feeCell.appendChild(feeInput);
+      tr.appendChild(feeCell);
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    card.appendChild(table);
+    settingsContainer.appendChild(card);
+  });
+}
+
+async function loadEventSettings() {
+  try {
+    showSettingsMessage("Loading event settings...");
+    const data = await api({ action: "getEventSettings" });
+    savedEventSettings = data.events || [];
+    renderEventSettings(savedEventSettings);
+    showSettingsMessage("Event settings loaded.", true);
+  } catch (error) {
+    showSettingsMessage("Could not load settings: " + error.message);
+  }
+}
+
+async function saveEventSettings() {
+  const password = document.getElementById("password").value;
+  if (!password) {
+    showSettingsMessage("Enter the admin password first.");
+    document.getElementById("password").focus();
+    return;
+  }
+
+  const configEvents = (window.APP_CONFIG && window.APP_CONFIG.events) || [];
+
+  const events = configEvents.map(event => {
+    const dateInput = [...settingsContainer.querySelectorAll(".event-date")]
+      .find(input => input.dataset.eventId === event.id);
+
+    const fees = {};
+    settingsContainer.querySelectorAll(".event-fee").forEach(input => {
+      if (input.dataset.eventId !== event.id) return;
+
+      const raw = input.value.trim();
+      if (raw !== "") {
+        const amount = Number(raw);
+        if (!Number.isSafeInteger(amount) || amount < 0) {
+          throw new Error(
+            "Fee must be a whole MMK amount for " +
+            event.name + " - " + input.dataset.category
+          );
+        }
+        fees[input.dataset.category] = amount;
+      } else {
+        fees[input.dataset.category] = "";
+      }
+    });
+
+    return {
+      eventId: event.id,
+      date: dateInput ? dateInput.value : "",
+      fees
+    };
+  });
+
+  const button = document.getElementById("saveEventSettingsBtn");
+  button.disabled = true;
+
+  try {
+    showSettingsMessage("Saving event settings...");
+    const result = await api({
+      action: "saveEventSettings",
+      adminPassword: password,
+      events
+    });
+
+    showSettingsMessage(
+      result.message || "Event settings saved successfully.",
+      true
+    );
+    await loadEventSettings();
+  } catch (error) {
+    showSettingsMessage("Could not save settings: " + error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+document.getElementById("loadEventSettingsBtn")
+  .addEventListener("click", loadEventSettings);
+
+document.getElementById("saveEventSettingsBtn")
+  .addEventListener("click", saveEventSettings);
 
   function value(record, key) {
     return record && record[key] != null
