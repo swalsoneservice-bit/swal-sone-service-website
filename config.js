@@ -1,6 +1,8 @@
 // Public configuration only. Never put passwords, tokens, or private keys here.
 window.APP_CONFIG = {
-  apiUrl: "PASTE_DEPLOYED_APPS_SCRIPT_EXEC_URL_HERE",
+  apiUrl: "
+apiUrl: "https://script.google.com/macros/s/AKfycbw8uXCLSCJpVyzN4q_Ow4f6i-HhZGm34gzOU1GdDABR-Mh6enAxe2Az1dFFMBrvqi13/exec",
+",
   qrImageUrl: "kbzpay-qr.jpg",
   brandName: "Swal-Sone Service",
   events: [
