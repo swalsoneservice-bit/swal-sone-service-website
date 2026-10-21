@@ -105,12 +105,234 @@ $('findTicket').onclick=async()=>{
   show(box,'Ticket approved. You can download or print it below.',true);renderTicket(d.ticket);
  }catch(e){show(box,e.message,false);}
 };
-function renderTicket(t){
- const area=$('ticketArea');area.classList.remove('hidden');
- area.innerHTML=`<div id="ticket" style="margin-top:16px;border:2px solid #10233f;border-radius:16px;padding:20px;background:white;max-width:640px"><div style="text-align:center;border-bottom:2px dashed #b8c5d6;padding-bottom:12px"><h2 style="margin:0">EVENT ENTRY TICKET</h2><div>${escapeHtml(t.eventName)}</div><strong>${escapeHtml(t.ticketId)}</strong></div><div style="display:grid;grid-template-columns:1fr 150px;gap:12px;align-items:center;padding-top:15px"><div><p><b>Name:</b> ${escapeHtml(t.name)}</p><p><b>Gender:</b> ${escapeHtml(t.gender)}</p><p><b>T-shirt Size:</b> ${escapeHtml(t.shirtSize)}</p><p><b>Distance / Category:</b> ${escapeHtml(t.distance)}</p><p><b>Type:</b> ${escapeHtml(t.participationType||'Individual')}</p></div><div id="ticketQr"></div></div><p class="hint">Present this ticket at event check-in. QR contains Ticket ID, Name, Gender, T-shirt Size and Distance.</p></div><p><button class="btn primary" id="printTicket">Download / Save Ticket as PDF</button></p>`;
- const payload=JSON.stringify({ticketId:t.ticketId,name:t.name,gender:t.gender,tShirtSize:t.shirtSize,distance:t.distance});
- new QRCode($('ticketQr'),{text:payload,width:140,height:140,correctLevel:QRCode.CorrectLevel.M});
- $('printTicket').onclick=()=>{const w=window.open('','_blank');if(!w){alert('Allow pop-ups to save ticket.');return;}w.document.write('<html><head><title>Ticket '+escapeHtml(t.ticketId)+'</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font:16px Arial;padding:20px}#ticket{max-width:640px;margin:auto;border:2px solid #10233f;border-radius:14px;padding:20px}#ticketQr img{width:140px}button{display:none}@media print{body{padding:0}}</style></head><body>'+ $('ticket').outerHTML+'<script>window.onload=()=>window.print()<\\/script></body></html>');w.document.close();};
+
+function renderTicket(t) {
+  const area = $("ticketArea");
+  area.classList.remove("hidden");
+  area.replaceChildren();
+
+  const ticket = document.createElement("div");
+  ticket.id = "ticket";
+  ticket.style.cssText = `
+    max-width: 680px;
+    margin: 18px auto;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    border-radius: 18px;
+    overflow: hidden;
+    color: #172235;
+    box-shadow: 0 12px 35px #10233f18;
+    font-family: Arial, sans-serif;
+  `;
+
+  ticket.innerHTML = `
+    <div style="
+      background:linear-gradient(125deg,#10233f,#175cd3);
+      color:white;padding:24px;
+    ">
+      <div style="
+        display:flex;align-items:center;gap:12px;
+        justify-content:space-between;flex-wrap:wrap;
+      ">
+        <div>
+          <div style="
+            font-size:12px;letter-spacing:2px;
+            color:#d6e5ff;font-weight:bold;
+          ">SWAL-SONE SERVICE</div>
+          <div style="font-size:23px;font-weight:800;margin-top:7px">
+            EVENT ENTRY TICKET
+          </div>
+        </div>
+        <div style="
+          border:1px solid #ffffff70;border-radius:10px;
+          padding:9px 12px;color:#f8d88a;font-size:12px;
+          font-weight:bold;
+        ">OFFICIAL TICKET</div>
+      </div>
+
+      <div style="
+        margin-top:24px;padding-top:16px;
+        border-top:1px dashed #ffffff70;
+      ">
+        <div style="
+          color:#f8d88a;font-size:11px;
+          letter-spacing:1.5px;font-weight:bold;
+        ">EVENT</div>
+        <div id="ticketEventName" style="
+          font-size:23px;font-weight:800;margin-top:5px;
+          overflow-wrap:anywhere;
+        "></div>
+        <div style="color:#d6e5ff;font-size:12px;margin-top:17px">
+          TICKET ID
+        </div>
+        <div id="ticketIdText" style="
+          font-size:18px;font-weight:bold;letter-spacing:1px;
+          margin-top:4px;overflow-wrap:anywhere;
+        "></div>
+      </div>
+    </div>
+
+    <div style="padding:22px">
+      <div style="
+        font-size:12px;font-weight:bold;color:#175cd3;
+        letter-spacing:1px;margin-bottom:13px;
+      ">PARTICIPANT DETAILS</div>
+
+      <div style="
+        display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:12px;
+      ">
+        <div style="
+          background:#f3f7fc;padding:12px;border-radius:10px;
+          min-width:0;
+        ">
+          <div style="font-size:11px;color:#58677b">FULL NAME</div>
+          <div id="ticketName" style="
+            font-weight:bold;margin-top:5px;overflow-wrap:anywhere;
+          "></div>
+        </div>
+
+        <div style="background:#f3f7fc;padding:12px;border-radius:10px">
+          <div style="font-size:11px;color:#58677b">GENDER</div>
+          <div id="ticketGender" style="font-weight:bold;margin-top:5px"></div>
+        </div>
+
+        <div style="background:#f3f7fc;padding:12px;border-radius:10px">
+          <div style="font-size:11px;color:#58677b">CATEGORY / DISTANCE</div>
+          <div id="ticketDistance" style="font-weight:bold;margin-top:5px"></div>
+        </div>
+
+        <div style="background:#f3f7fc;padding:12px;border-radius:10px">
+          <div style="font-size:11px;color:#58677b">PARTICIPATION</div>
+          <div id="ticketType" style="font-weight:bold;margin-top:5px"></div>
+        </div>
+
+        <div style="
+          background:#f3f7fc;padding:12px;border-radius:10px;
+          grid-column:1/-1;
+        ">
+          <div style="font-size:11px;color:#58677b">T-SHIRT SIZE</div>
+          <div id="ticketShirt" style="font-weight:bold;margin-top:5px"></div>
+        </div>
+      </div>
+
+      <div style="
+        display:flex;align-items:center;justify-content:space-between;
+        gap:18px;margin-top:22px;padding-top:20px;
+        border-top:2px dashed #dbe3ee;flex-wrap:wrap;
+      ">
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:17px;font-weight:800;color:#10233f">
+            READY FOR CHECK-IN
+          </div>
+          <p style="font-size:13px;color:#58677b;line-height:1.6">
+            Please present this ticket to the event staff.
+            Keep your Ticket ID for reference.
+          </p>
+          <div style="font-size:11px;color:#58677b">
+            © Swal-Sone Service
+          </div>
+        </div>
+        <div style="
+          background:white;border:1px solid #dbe3ee;
+          border-radius:12px;padding:10px;text-align:center;
+        ">
+          <div id="ticketQr"></div>
+          <div style="font-size:10px;color:#58677b;margin-top:5px">
+            SCAN TICKET
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  area.appendChild(ticket);
+
+  $("ticketEventName").textContent = t.eventName || "Event";
+  $("ticketIdText").textContent = t.ticketId || "";
+  $("ticketName").textContent = t.name || "—";
+  $("ticketGender").textContent = t.gender || "—";
+  $("ticketDistance").textContent = t.distance || "—";
+  $("ticketType").textContent = t.participationType || "Individual";
+  $("ticketShirt").textContent = t.shirtSize || "—";
+
+  const payload = JSON.stringify({
+    ticketId: t.ticketId,
+    name: t.name,
+    gender: t.gender,
+    tShirtSize: t.shirtSize,
+    distance: t.distance
+  });
+
+  new QRCode($("ticketQr"), {
+    text: payload,
+    width: 140,
+    height: 140,
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  const printButton = document.createElement("button");
+  printButton.type = "button";
+  printButton.className = "btn primary";
+  printButton.textContent = "Print / Save Ticket as PDF";
+  printButton.style.cssText =
+    "display:block;width:100%;max-width:680px;margin:14px auto;padding:13px;";
+
+  area.appendChild(printButton);
+
+  printButton.onclick = () => {
+    const win = window.open("", "_blank");
+
+    if (!win) {
+      alert("Please allow pop-ups to print or save your ticket.");
+      return;
+    }
+
+    const printStyles = `
+      * { box-sizing:border-box; }
+      body {
+        margin:0;padding:20px;background:#fff;
+        font:14px Arial,sans-serif;color:#172235;
+      }
+      #ticket {
+        width:100%;max-width:680px;margin:0 auto;
+        border:1px solid #dbe3ee;border-radius:18px;
+        overflow:hidden;box-shadow:none;
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+      }
+      #ticketQr img { display:block;max-width:140px;height:auto; }
+      #ticketQr canvas { display:none; }
+      @page { size:A4 portrait;margin:12mm; }
+      @media print {
+        body { padding:0; }
+        #ticket { break-inside:avoid; }
+      }
+    `;
+
+    win.document.open();
+    win.document.write(`
+      <!doctype html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Event Ticket - ${escapeHtml(t.ticketId)}</title>
+        <style>${printStyles}</style>
+      </head>
+      <body>
+        ${ticket.outerHTML}
+        <script>
+          window.onload = function() {
+            window.focus();
+            window.print();
+          };
+        <\/script>
+      </body>
+      </html>
+    `);
+    win.document.close();
+  };
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 </script></body></html>
