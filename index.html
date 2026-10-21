@@ -59,28 +59,144 @@ $('year').textContent=new Date().getFullYear();
 $('paymentQr').src=cfg.qrImageUrl||'kbzpay-qr.jpg';
 function fill(select,items,placeholder){select.innerHTML='';const o=document.createElement('option');o.value='';o.textContent=placeholder;select.appendChild(o);items.forEach(v=>{const x=document.createElement('option');x.value=v;x.textContent=v;select.appendChild(x);});}
 function selectedEvent(){return events.find(e=>e.id===$('eventSelect').value)}
-function updateEvent(){
- const ev=selectedEvent();if(!ev)return;
- $('heroTitle').textContent=ev.title||ev.name;$('heroSubtitle').textContent=cfg.brandName||'Swal-Sone Service';
- if(ev.banner){$('banner').onerror=()=>{$('banner').classList.add('hidden');$('brandFallback').classList.remove('hidden');};$('banner').src=ev.banner;$('banner').classList.remove('hidden');$('brandFallback').classList.add('hidden');}else{$('banner').classList.add('hidden');$('brandFallback').classList.remove('hidden');}
- $('eventDate').value=ev.date||'To be announced';$('eventDescription').textContent=ev.description||'';
- fill($('race'),ev.categories||[],'Select category');$('feeDisplay').value='Select category';
- const relay=!!ev.relay;$('participationWrap').classList.toggle('hidden',!relay);$('participation').required=relay;
- $('itraWrap').classList.toggle('hidden',ev.id!=='trail-run');$('itraId').required=!!(ev.fields&&ev.fields.itraId&&ev.fields.itraId.required);
- $('relayWrap').classList.add('hidden');$('relayMembers').innerHTML='';
+
+let googleEventSettings = {};
+
+function selectedEvent() {
+  return events.find(e => e.id === $('eventSelect').value);
 }
-$('eventSelect').addEventListener('change',updateEvent);
-$('race').addEventListener('change',()=>{const ev=selectedEvent(),fee=ev&&ev.fees&&ev.fees[$('race').value];$('feeDisplay').value=fee==null?'Fee not configured':Number(fee).toLocaleString()+' MMK';});
-events.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.name;$('eventSelect').appendChild(o);});if(events.length){$('eventSelect').value=events[0].id;updateEvent();}
-$('student').addEventListener('change',()=>{$('nationalId').required=$('student').value==='No';$('nidHint').textContent=$('student').value==='Yes'?'(optional for students)':'*';if($('student').value==='Yes')$('nationalId').value='';});
-$('participation').addEventListener('change',()=>{const isRelay=$('participation').value==='Relay';$('relayWrap').classList.toggle('hidden',!isRelay);$('relayMembers').querySelectorAll('input,select').forEach(el=>{el.disabled=!isRelay;});if(isRelay&&!$('relayMembers').children.length)addMember();});
-let memberCount=0;
-function addMember(){
- if(memberCount>=5){alert('Maximum 6 people per team including captain.');return;}memberCount++;
- const box=document.createElement('div');box.className='member';box.innerHTML=`<h3>Relay Member ${memberCount}</h3><div class="grid"><div><label>Name *</label><input name="relayName" required maxlength="120"></div><div><label>Gender *</label><select name="relayGender" required><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div><div><label>T-shirt Size *</label><select name="relayShirtSize" required><option value="">Select</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></div><div><label>Mobile (optional)</label><input name="relayMobile" type="tel"></div></div><button type="button" class="btn secondary removeMember">Remove member</button>`;
- box.querySelector('.removeMember').onclick=()=>{box.remove();memberCount--;[...$('relayMembers').children].forEach((el,i)=>el.querySelector('h3').textContent='Relay Member '+(i+1));};if($('participation').value!=='Relay')box.querySelectorAll('input,select').forEach(el=>el.disabled=true);$('relayMembers').appendChild(box);
+
+function eventDateFor(ev) {
+  const saved = googleEventSettings[ev.id];
+  return saved && saved.date ? saved.date : ev.date || 'To be announced';
 }
-$('addMember').onclick=addMember;
+
+function eventFeesFor(ev) {
+  const saved = googleEventSettings[ev.id];
+
+  // Google Sheets settings take priority over config.js.
+  // If settings exist, a blank fee remains unconfigured.
+  return saved ? saved.fees : (ev.fees || {});
+}
+
+function updateFee() {
+  const ev = selectedEvent();
+  const category = $('race').value;
+
+  if (!ev || !category) {
+    $('feeDisplay').value = 'Select category';
+    return;
+  }
+
+  const fees = eventFeesFor(ev);
+  const fee = fees[category];
+
+  if (fee === '' || fee === null || fee === undefined ||
+      !Number.isFinite(Number(fee)) || Number(fee) < 0) {
+    $('feeDisplay').value = 'Fee not configured';
+    return;
+  }
+
+  $('feeDisplay').value =
+    Number(fee).toLocaleString('en-US') + ' MMK';
+}
+
+function updateEvent() {
+  const ev = selectedEvent();
+
+  if (!ev) {
+    $('eventDate').value = '';
+    $('feeDisplay').value = 'Select event';
+    $('eventDescription').textContent = '';
+    fill($('race'), [], 'Select category');
+    return;
+  }
+
+  $('heroTitle').textContent = ev.title || ev.name;
+  $('heroSubtitle').textContent =
+    cfg.brandName || 'Swal-Sone Service';
+
+  if (ev.banner) {
+    $('banner').onerror = () => {
+      $('banner').classList.add('hidden');
+      $('brandFallback').classList.remove('hidden');
+    };
+    $('banner').src = ev.banner;
+    $('banner').classList.remove('hidden');
+    $('brandFallback').classList.add('hidden');
+  } else {
+    $('banner').classList.add('hidden');
+    $('brandFallback').classList.remove('hidden');
+  }
+
+  $('eventDate').value = eventDateFor(ev);
+  $('eventDescription').textContent = ev.description || '';
+
+  fill($('race'), ev.categories || [], 'Select category');
+  $('feeDisplay').value = 'Select category';
+
+  const relay = !!ev.relay;
+  $('participationWrap').classList.toggle('hidden', !relay);
+  $('participation').required = relay;
+
+  if (!relay) {
+    $('participation').value = 'Individual';
+  }
+
+  $('itraWrap').classList.toggle('hidden', ev.id !== 'trail-run');
+  $('itraId').required = !!(
+    ev.fields && ev.fields.itraId && ev.fields.itraId.required
+  );
+
+  $('relayWrap').classList.add('hidden');
+  $('relayMembers').innerHTML = '';
+  memberCount = 0;
+
+  updateFee();
+}
+
+async function loadGoogleEventSettings() {
+  try {
+    const result = await api({ action: 'getEventSettings' });
+
+    const settings = {};
+
+    (result.events || []).forEach(item => {
+      settings[item.eventId] = {
+        date: item.date || '',
+        fees: item.fees || {}
+      };
+    });
+
+    googleEventSettings = settings;
+
+    // Refresh the currently selected event and its displayed fee.
+    updateEvent();
+  } catch (error) {
+    console.error('Could not load Google Sheets event settings:', error);
+
+    // Keep the registration page usable with config.js fallback values.
+    googleEventSettings = {};
+    updateEvent();
+  }
+}
+
+$('eventSelect').addEventListener('change', updateEvent);
+$('race').addEventListener('change', updateFee);
+
+events.forEach(event => {
+  const option = document.createElement('option');
+  option.value = event.id;
+  option.textContent = event.name;
+  $('eventSelect').appendChild(option);
+});
+
+if (events.length) {
+  $('eventSelect').value = events[0].id;
+  updateEvent();
+  loadGoogleEventSettings();
+}
+
 async function api(payload){const res=await fetch(cfg.apiUrl,{method:'POST',body:JSON.stringify(payload)});const data=await res.json();if(!data.ok)throw new Error(data.error||'Request failed');return data;}
 function show(el,msg,ok){el.textContent=msg;el.className='status '+(ok?'ok':'err');}
 $('regForm').addEventListener('submit',async evnt=>{
