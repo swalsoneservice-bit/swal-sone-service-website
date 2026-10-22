@@ -2,903 +2,789 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Swal-Sone Service | Event Admin</title>
-
-  <style>
-    :root {
-      --primary: #175cd3;
-      --background: #f3f7fc;
-      --border: #dbe3ee;
-      --text: #172235;
-      --muted: #58677b;
-      --green: #067647;
-      --red: #b42318;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--background);
-      color: var(--text);
-      font: 15px/1.55 system-ui, Arial, sans-serif;
-    }
-
-    main {
-      max-width: 1500px;
-      margin: 24px auto;
-      padding: 0 14px;
-    }
-
-    h1 { font-size: 25px; margin-bottom: 6px; }
-    h2 { font-size: 19px; margin-top: 0; }
-
-    .muted { color: var(--muted); }
-    .small { font-size: 12px; }
-
-    .card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px #17223508;
-    }
-
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 9px;
-    }
-
-    input, select, button {
-      font: inherit;
-      padding: 10px 12px;
-      border: 1px solid #bdc9d8;
-      border-radius: 8px;
-    }
-
-    input, select {
-      max-width: 100%;
-      background: white;
-      color: var(--text);
-    }
-
-    button {
-      border: 0;
-      background: var(--primary);
-      color: white;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    button:hover { filter: brightness(.94); }
-    button:disabled { opacity: .55; cursor: wait; }
-
-    .secondary { background: #475467; }
-    .danger { background: var(--red); }
-
-    #password { width: min(320px, 100%); }
-    #message { white-space: pre-line; overflow-wrap: anywhere; }
-    #message.error { color: var(--red); }
-    #message.success { color: var(--green); }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-    }
-
-    .stat {
-      background: #edf3fa;
-      border-radius: 10px;
-      padding: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    .stat-title {
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .stat-line {
-      font-size: 13px;
-      border-top: 1px solid #dbe3ee;
-      padding-top: 4px;
-      margin-top: 4px;
-    }
-
-    .tablewrap {
-      overflow: auto;
-      max-height: 72vh;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      background: white;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      vertical-align: top;
-      min-width: 105px;
-    }
-
-    th {
-      background: #edf3fa;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    td select { min-width: 115px; }
-    td input { min-width: 170px; }
-    .actioncell { min-width: 145px; }
-    .record-id { overflow-wrap: anywhere; }
-    .empty { padding: 24px; text-align: center; color: var(--muted); }
-
-    a { color: var(--primary); }
-
-    @media (max-width: 600px) {
-      main { margin: 14px auto; padding: 0 9px; }
-      .card { padding: 13px; }
-      h1 { font-size: 21px; }
-      #password { width: 100%; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Swal-Sone Service | Event Admin</title>
+<style>
+:root {
+  --primary:#175cd3; --background:#f3f7fc; --border:#dbe3ee;
+  --text:#172235; --muted:#58677b; --green:#067647; --red:#b42318;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--background);color:var(--text);
+  font:15px/1.55 system-ui,Arial,sans-serif}
+main{max-width:1500px;margin:24px auto;padding:0 14px}
+h1{font-size:25px;margin:0 0 6px}
+h2{font-size:19px;margin:0 0 12px}
+p{margin:8px 0}
+.muted{color:var(--muted)}.small{font-size:12px}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;
+  padding:18px;margin-bottom:16px;box-shadow:0 2px 8px #17223508}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+input,select,button{font:inherit;padding:10px 12px;border-radius:8px}
+input,select{border:1px solid #bdc9d8;background:#fff;color:var(--text);max-width:100%}
+button{border:0;background:var(--primary);color:#fff;cursor:pointer;font-weight:600}
+button:hover{filter:brightness(.94)}
+button:disabled{opacity:.55;cursor:wait}
+.secondary{background:#475467}.success-btn{background:var(--green)}
+#password{width:min(320px,100%)}
+#message,#eventSettingsMessage,#listMessage{white-space:pre-line;overflow-wrap:anywhere}
+.error{color:var(--red)}.success{color:var(--green)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.stat{background:#edf3fa;border-radius:10px;padding:12px;overflow-wrap:anywhere}
+.stat-title{font-weight:700;margin-bottom:6px}
+.stat-line{font-size:13px;border-top:1px solid var(--border);padding-top:4px;margin-top:4px}
+.tablewrap{overflow:auto;max-height:72vh;border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:white}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{background:#edf3fa;position:sticky;top:0;z-index:1;white-space:nowrap}
+td select{min-width:115px}td input{min-width:150px}
+.actioncell{min-width:130px}.empty{padding:24px;text-align:center;color:var(--muted)}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.event-card{border:1px solid var(--border);border-radius:10px;padding:14px;background:#fff}
+.event-card h3{margin:0 0 12px}
+.event-card label{display:block;font-weight:600;margin-bottom:5px}
+.event-card input{width:100%}
+.fee-row{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:center;margin-top:8px}
+a{color:var(--primary)}
+@media(max-width:600px){
+  main{margin:14px auto;padding:0 9px}.card{padding:13px}
+  h1{font-size:21px}#password{width:100%}
+}
+</style>
 </head>
-
 <body>
 <main>
-  <header class="card">
-    <h1>Swal-Sone Service — Event Admin</h1>
-    <p class="muted">
-      Review registrations and payment receipts.
-      A ticket can be issued only when Payment is Verified
-      and Approval is Approved.
-    </p>
-
-    <div class="row">
-      <input
-        id="password"
-        type="password"
-        placeholder="Admin password"
-        autocomplete="current-password"
-        aria-label="Admin password"
-      >
-      <button id="loadBtn" type="button">Load registrations</button>
-      <button id="csvBtn" type="button" class="secondary">Export CSV</button>
-    </div>
-
-    <p id="message" role="status" aria-live="polite"></p>
-    <p class="muted small">
-      Keep your admin password private. Do not share it in public.
-    </p>
-  </header>
-  
-  
-<section class="card">
-  <h2>Event Settings — Date & Registration Fee</h2>
-  <p class="muted">
-    Set the date and fee for each event category.
-    Changes are saved to the EventSettings Google Sheets tab.
-  </p>
-
+<header class="card">
+  <h1>Swal-Sone Service — Event Admin</h1>
+  <p class="muted">Manage registrations, review payment receipts, and export data.</p>
   <div class="row">
-    <button id="loadEventSettingsBtn" type="button" class="secondary">
-      Load Event Settings
-    </button>
-    <button id="saveEventSettingsBtn" type="button">
-      Save Event Settings
-    </button>
+    <input id="password" type="password" placeholder="Admin password"
+      autocomplete="current-password" aria-label="Admin password">
+    <button id="loginBtn" type="button">Login &amp; Load</button>
+    <button id="logoutBtn" type="button" class="secondary" disabled>Logout</button>
+    <button id="csvBtn" type="button" class="secondary" disabled>Export CSV</button>
   </div>
+  <p id="message" role="status" aria-live="polite" class="muted"></p>
+  <p class="muted small">Keep your admin password private. Do not share it publicly.</p>
+</header>
 
-  <p id="eventSettingsMessage" role="status" aria-live="polite"></p>
-  <div id="eventSettingsContainer"></div>
+<section class="card">
+  <h2>Event Settings — Date &amp; Registration Fee</h2>
+  <p class="muted">Set the date and fee for each event category.</p>
+  <div class="row">
+    <button id="loadSettingsBtn" type="button" class="secondary">Load Settings</button>
+    <button id="saveSettingsBtn" type="button" class="success-btn" disabled>Save Settings</button>
+  </div>
+  <p id="eventSettingsMessage" role="status" aria-live="polite" class="muted"></p>
+  <div id="eventSettingsContainer" class="settings-grid">
+    <p class="muted">Log in first to load event settings.</p>
+  </div>
 </section>
 
-  <section class="card">
-    <h2>Registration Summary</h2>
-    <div id="summary" class="stats">
-      <p class="muted">Load registrations to view summary.</p>
-    </div>
-  </section>
+<section class="card">
+  <h2>Registration Summary</h2>
+  <div id="summary" class="stats">
+    <p class="muted">Log in to view the summary.</p>
+  </div>
+</section>
 
-  <section class="card">
-    <h2>Registrations</h2>
-    <p class="muted small">
-      Save each registration review separately. Reload the list to confirm
-      the saved status.
-    </p>
+<section class="card">
+  <h2>Registrations</h2>
+  <div class="row" style="margin-bottom:12px">
+    <input id="searchInput" type="search" placeholder="Search name, ID, email or phone"
+      aria-label="Search registrations" style="flex:1;min-width:220px">
+    <select id="eventFilter" aria-label="Filter by event">
+      <option value="">All events</option>
+    </select>
+  </div>
+  <p class="muted small">Save each review separately. Reload the list to verify saved changes.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th>Registration / Ticket</th>
+        <th>Event / Category</th>
+        <th>Participant / Contact</th>
+        <th>Relay / ITRA</th>
+        <th>Fee / T-shirt</th>
+        <th>Payment Screenshot</th>
+        <th>Payment Status</th>
+        <th>Approval Status</th>
+        <th>Admin Note</th>
+        <th>Action</th>
+      </tr></thead>
+      <tbody id="rows">
+        <tr><td colspan="10" class="empty">Please log in and load registrations.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p id="listMessage" role="status" aria-live="polite" class="muted"></p>
+</section>
 
-    <div class="tablewrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Registration / Ticket</th>
-            <th>Event / Category</th>
-            <th>Participant / Contact</th>
-            <th>Relay / ITRA</th>
-            <th>Fee / T-shirt</th>
-            <th>Payment Screenshot</th>
-            <th>Payment Status</th>
-            <th>Approval Status</th>
-            <th>Admin Note</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="rows">
-          <tr>
-            <td colspan="10" class="empty">
-              Please load registrations.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <footer class="muted small">
-    © <span id="year"></span> Swal-Sone Service
-  </footer>
+<footer class="muted small">© <span id="year"></span> Swal-Sone Service</footer>
 </main>
 
 <script src="config.js"></script>
 <script>
 (() => {
-  "use strict";
+"use strict";
 
-  const $ = id => document.getElementById(id);
+const $ = id => document.getElementById(id);
+let registrations = [];
+let adminToken = "";
+let isLoading = false;
+let eventSettings = [];
 
-  let registrations = [];
-  let loading = false;
+$("year").textContent = new Date().getFullYear();
 
-  $("year").textContent = new Date().getFullYear();
+function message(id, text, type = "") {
+  const el = $(id);
+  el.textContent = text || "";
+  el.className = type || "muted";
+}
 
-  function setMessage(message, type = "") {
-    const el = $("message");
-    el.textContent = message;
-    el.className = type;
+function checkConfig() {
+  const url = window.APP_CONFIG && window.APP_CONFIG.apiUrl;
+  if (!url || !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)) {
+    throw new Error("API URL မမှန်ပါ။ config.js ကို စစ်ဆေးပါ။");
+  }
+  return url;
+}
+
+/*
+ * Apps Script API:
+ * POST login -> returns token
+ * GET list?token=...&callback=... -> returns registration rows
+ * POST update -> token + id + data
+ * Event Settings actions will be added to Code.gs in the next step.
+ */
+
+async function postApi(payload) {
+  const url = checkConfig();
+  const response = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) throw new Error("Network error: HTTP " + response.status);
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (_) {
+    throw new Error("API က JSON ပြန်မပေးပါ။ Apps Script deployment ကို စစ်ပါ။");
   }
 
-  function requireConfig() {
-    if (
-      !window.APP_CONFIG ||
-      !window.APP_CONFIG.apiUrl ||
-      !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(
-        window.APP_CONFIG.apiUrl
-      )
-    ) {
-      throw new Error(
-        "API URL is missing or invalid. Please check config.js."
-      );
+  if (!data || data.ok !== true) {
+    throw new Error(data && data.error ? data.error : "API request failed.");
+  }
+  return data;
+}
+
+/* GET requests use JSONP to avoid cross-origin read restrictions. */
+function getApi(params) {
+  return new Promise((resolve, reject) => {
+    let url;
+    try { url = checkConfig(); }
+    catch (error) { reject(error); return; }
+
+    const callbackName = "__sssAdminCallback";
+    const old = document.getElementById("sss-jsonp-script");
+    if (old) old.remove();
+
+    const query = new URLSearchParams({...params, callback: callbackName});
+    const script = document.createElement("script");
+    script.id = "sss-jsonp-script";
+    script.src = url + "?" + query.toString();
+
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("API response timed out. Check the Apps Script deployment."));
+    }, 20000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      script.remove();
+      try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+    }
+
+    window[callbackName] = data => {
+      cleanup();
+      if (!data || data.ok !== true) {
+        reject(new Error(data && data.error ? data.error : "API request failed."));
+      } else {
+        resolve(data);
+      }
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Could not connect to Apps Script."));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function field(record, ...keys) {
+  for (const key of keys) {
+    if (record && record[key] !== undefined && record[key] !== null && record[key] !== "") {
+      return record[key];
     }
   }
+  const normalize = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+  const wanted = keys.map(normalize);
+  const found = Object.keys(record || {}).find(key => wanted.includes(normalize(key)));
+  return found ? record[found] : "";
+}
 
-  async function api(payload) {
-    requireConfig();
+function text(value) {
+  return value === null || value === undefined ? "" : String(value);
+}
 
-    const response = await fetch(window.APP_CONFIG.apiUrl, {
-      method: "POST",
-      body: JSON.stringify(payload)
+function line(parent, content, className = "") {
+  const el = document.createElement("div");
+  el.textContent = content;
+  if (className) el.className = className;
+  parent.appendChild(el);
+  return el;
+}
+
+function cell(row, content) {
+  const td = document.createElement("td");
+  if (content instanceof Node) td.appendChild(content);
+  else td.textContent = text(content);
+  row.appendChild(td);
+  return td;
+}
+
+function selectControl(options, current) {
+  const select = document.createElement("select");
+  const values = [...new Set([current, ...options].filter(Boolean).map(String))];
+  values.forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    option.selected = value === String(current);
+    select.appendChild(option);
+  });
+  return select;
+}
+
+function screenshotLink(record) {
+  const fileId = field(record, "Screenshot File ID", "ScreenshotFileID", "screenshotFileId");
+  const screenshotUrl = field(record, "Screenshot URL", "Screenshot Link", "screenshotUrl");
+  if (screenshotUrl && /^https?:\/\//i.test(String(screenshotUrl))) {
+    const a = document.createElement("a");
+    a.href = screenshotUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = "Open screenshot";
+    return a;
+  }
+  if (fileId && /^[A-Za-z0-9_-]+$/.test(String(fileId))) {
+    const a = document.createElement("a");
+    a.href = "https://drive.google.com/open?id=" + encodeURIComponent(fileId);
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = "Open screenshot";
+    return a;
+  }
+  return "No screenshot uploaded";
+}
+
+function relayMembers(record) {
+  const raw = field(record, "Relay Members JSON", "relayMembers");
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function renderSummary(summary = {}) {
+  const root = $("summary");
+  root.replaceChildren();
+
+  const total = registrations.length;
+  const events = {};
+  const categories = {};
+  const shirts = {};
+  const payments = {};
+  const approvals = {};
+
+  registrations.forEach(r => {
+    const event = text(field(r, "Event Name", "eventName", "event") || "Unknown");
+    const category = text(field(r, "Race Category / Distance", "Race Category/Distance", "category") || "Not specified");
+    const shirt = text(field(r, "T-shirt Size", "T-shirt Size", "tshirt") || "Not specified");
+    const payment = text(field(r, "Payment Status", "paymentStatus") || "Pending");
+    const approval = text(field(r, "Approval Status", "approvalStatus") || "Pending");
+    events[event] = (events[event] || 0) + 1;
+    categories[category] = (categories[category] || 0) + 1;
+    shirts[shirt] = (shirts[shirt] || 0) + 1;
+    payments[payment] = (payments[payment] || 0) + 1;
+    approvals[approval] = (approvals[approval] || 0) + 1;
+  });
+
+  const sections = [
+    ["Total Registrations", {"Total": summary.total ?? total}],
+    ["Events", summary.events || events],
+    ["Categories", summary.categories || summary.byCategory || categories],
+    ["T-shirt Sizes", summary.shirts || shirts],
+    ["Payments", summary.payments || payments],
+    ["Approvals", summary.approvals || approvals]
+  ];
+
+  sections.forEach(([title, data]) => {
+    const card = document.createElement("div");
+    card.className = "stat";
+    line(card, title, "stat-title");
+    if (typeof data === "object" && data && Object.keys(data).length) {
+      Object.entries(data).forEach(([key, value]) => {
+        line(card, key + ": " + value, "stat-line");
+      });
+    } else {
+      line(card, "No data", "muted small");
+    }
+    root.appendChild(card);
+  });
+}
+
+function populateEventFilter() {
+  const filter = $("eventFilter");
+  const oldValue = filter.value;
+  const names = [...new Set(registrations.map(r =>
+    text(field(r, "Event Name", "eventName", "event"))
+  ).filter(Boolean))].sort();
+
+  filter.replaceChildren();
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "All events";
+  filter.appendChild(all);
+
+  names.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    filter.appendChild(option);
+  });
+  if (names.includes(oldValue)) filter.value = oldValue;
+}
+
+function renderRegistrations() {
+  const tbody = $("rows");
+  tbody.replaceChildren();
+
+  const query = $("searchInput").value.trim().toLowerCase();
+  const eventFilter = $("eventFilter").value;
+
+  const filtered = registrations.filter(record => {
+    const event = text(field(record, "Event Name", "eventName", "event"));
+    const searchable = [
+      field(record, "Registration ID", "registrationId", "id"),
+      field(record, "Ticket ID", "ticketId"),
+      field(record, "Name", "Full Name", "fullName"),
+      field(record, "Email", "email"),
+      field(record, "Mobile No", "Mobile Number", "mobile"),
+      event
+    ].map(text).join(" ").toLowerCase();
+
+    return (!eventFilter || event === eventFilter) && (!query || searchable.includes(query));
+  });
+
+  if (!filtered.length) {
+    const tr = document.createElement("tr");
+    const td = cell(tr, "No matching registrations found.");
+    td.colSpan = 10;
+    td.className = "empty";
+    tbody.appendChild(tr);
+    return;
+  }
+
+  filtered.forEach(record => {
+    const tr = document.createElement("tr");
+
+    const idBox = document.createElement("div");
+    line(idBox, "Reg ID: " + text(field(record, "Registration ID", "registrationId", "id") || "—"));
+    line(idBox, "Ticket: " + text(field(record, "Ticket ID", "ticketId") || "Not issued"));
+    cell(tr, idBox);
+
+    const eventBox = document.createElement("div");
+    line(eventBox, text(field(record, "Event Name", "eventName", "event") || "—"));
+    line(eventBox, text(field(record, "Race Category / Distance", "Race Category/Distance", "category") || "—"));
+    line(eventBox, text(field(record, "Participation Type", "participationType") || ""), "muted");
+    cell(tr, eventBox);
+
+    const personBox = document.createElement("div");
+    line(personBox, text(field(record, "Name", "Full Name", "fullName") || "—"));
+    line(personBox, "Gender: " + text(field(record, "Gender", "gender") || "—"));
+    line(personBox, "Email: " + text(field(record, "Email", "email") || "—"));
+    line(personBox, "Mobile: " + text(field(record, "Mobile No", "Mobile Number", "mobile") || "—"));
+    cell(tr, personBox);
+
+    const relayBox = document.createElement("div");
+    const members = relayMembers(record);
+    if (members.length) {
+      members.forEach((member, i) => {
+        line(relayBox, text(member.name || member.fullName || ("Member " + (i + 1))));
+      });
+    } else {
+      line(relayBox, "No relay members");
+    }
+    line(relayBox, "ITRA ID: " + text(field(record, "ITRA ID", "itraId") || "—"), "muted small");
+    cell(tr, relayBox);
+
+    const feeBox = document.createElement("div");
+    line(feeBox, "Fee: " + text(field(record, "Registration Fee (MMK)", "Registration Fee", "registrationFee", "fee") || "—"));
+    line(feeBox, "T-shirt: " + text(field(record, "T-shirt Size", "tshirt") || "—"));
+    line(feeBox, "Participants: " + text(field(record, "Participant Count", "quantity") || "1"), "muted small");
+    cell(tr, feeBox);
+
+    cell(tr, screenshotLink(record));
+
+    const payment = selectControl(
+      ["Pending", "Verified", "Rejected"],
+      text(field(record, "Payment Status", "paymentStatus") || "Pending")
+    );
+    cell(tr, payment);
+
+    const approval = selectControl(
+      ["Pending", "Approved", "Rejected"],
+      text(field(record, "Approval Status", "approvalStatus") || "Pending")
+    );
+    cell(tr, approval);
+
+    const note = document.createElement("input");
+    note.type = "text";
+    note.maxLength = 500;
+    note.placeholder = "Admin note";
+    note.value = text(field(record, "Admin Note", "adminNote"));
+    cell(tr, note);
+
+    const action = cell(tr, "");
+    action.className = "actioncell";
+    const save = document.createElement("button");
+    save.type = "button";
+    save.textContent = "Save review";
+    action.appendChild(save);
+    const result = line(action, "", "small");
+
+    save.addEventListener("click", async () => {
+      if (!adminToken) {
+        message("message", "Please log in again.", "error");
+        return;
+      }
+
+      const id = field(record, "Registration ID", "registrationId", "id");
+      if (!id) {
+        result.textContent = "Missing Registration ID.";
+        result.className = "small error";
+        return;
+      }
+
+      save.disabled = true;
+      result.textContent = "Saving...";
+      result.className = "small muted";
+
+      try {
+        const updateData = {
+          paymentStatus: payment.value,
+          approvalStatus: approval.value,
+          adminNote: note.value.trim()
+        };
+
+        const response = await postApi({
+          action: "update",
+          token: adminToken,
+          id: String(id),
+          data: updateData
+        });
+
+        record["Payment Status"] = response.paymentStatus || payment.value;
+        record["Approval Status"] = response.approvalStatus || approval.value;
+        record["Admin Note"] = note.value.trim();
+        if (response.ticketId) record["Ticket ID"] = response.ticketId;
+
+        result.textContent = response.message || "Saved";
+        result.className = "small success";
+        renderSummary({});
+        message("listMessage", "Review saved. Reload the list to confirm the backend data.", "success");
+      } catch (error) {
+        result.textContent = error.message;
+        result.className = "small error";
+      } finally {
+        save.disabled = false;
+      }
     });
 
-    if (!response.ok) {
-      throw new Error("Network error: HTTP " + response.status);
-    }
+    tbody.appendChild(tr);
+  });
+}
 
-    let data;
+async function loginAndLoad() {
+  if (isLoading) return;
+  const password = $("password").value;
 
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(
-        "The API did not return JSON. Check the Apps Script deployment."
-      );
-    }
-
-    if (!data || data.ok !== true) {
-      throw new Error(
-        data && data.error ? data.error : "The API request failed."
-      );
-    }
-
-    return data;
+  if (!password) {
+    message("message", "Please enter the admin password.", "error");
+    $("password").focus();
+    return;
   }
-  
-const settingsMessage = document.getElementById("eventSettingsMessage");
-const settingsContainer = document.getElementById("eventSettingsContainer");
 
-let savedEventSettings = [];
+  isLoading = true;
+  $("loginBtn").disabled = true;
+  message("message", "Signing in...");
 
-function showSettingsMessage(message, success = false) {
-  settingsMessage.textContent = message;
-  settingsMessage.className = success ? "success" : "error";
+  try {
+    const result = await postApi({action:"login", password});
+    if (!result.token) throw new Error("Login response did not contain an admin token.");
+
+    adminToken = result.token;
+    $("logoutBtn").disabled = false;
+    $("saveSettingsBtn").disabled = false;
+
+    message("message", "Login successful. Loading registrations...", "success");
+
+    const data = await getApi({action:"list", token:adminToken});
+    if (!Array.isArray(data.rows)) {
+      throw new Error("API response is missing the registrations list.");
+    }
+
+    registrations = data.rows;
+    renderSummary(data.summary || {});
+    populateEventFilter();
+    renderRegistrations();
+    $("csvBtn").disabled = registrations.length === 0;
+
+    message("message", "Loaded " + registrations.length + " registration(s).", "success");
+    await loadEventSettings();
+  } catch (error) {
+    message("message", "Could not load admin data: " + error.message, "error");
+  } finally {
+    isLoading = false;
+    $("loginBtn").disabled = false;
+  }
+}
+
+function dateForInput(value) {
+  if (!value) return "";
+  const s = String(value).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return m[1] + "-" + m[2].padStart(2,"0") + "-" + m[3].padStart(2,"0");
+  m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+  if (m) return m[3] + "-" + m[2].padStart(2,"0") + "-" + m[1].padStart(2,"0");
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0,10);
 }
 
 function renderEventSettings(settings = []) {
-  const configEvents = (window.APP_CONFIG && window.APP_CONFIG.events) || [];
-  const savedById = Object.fromEntries(
-    settings.map(event => [event.eventId, event])
-  );
+  const root = $("eventSettingsContainer");
+  root.replaceChildren();
 
-  settingsContainer.replaceChildren();
+  const configEvents = window.APP_CONFIG && Array.isArray(window.APP_CONFIG.events)
+    ? window.APP_CONFIG.events : [];
+
+  if (!configEvents.length) {
+    line(root, "No events found in config.js.", "muted");
+    return;
+  }
+
+  const savedMap = {};
+  settings.forEach(item => {
+    savedMap[String(item.eventId || item.id || item.eventSlug || "")] = item;
+  });
 
   configEvents.forEach(event => {
-    const saved = savedById[event.id] || {};
-    const categories = event.categories || [];
-    const dateValue = saved.date || "";
+    const id = String(event.id || event.eventId || "");
+    const saved = savedMap[id] || {};
+    const categories = Array.isArray(event.categories) ? event.categories : [];
 
     const card = document.createElement("div");
-    card.className = "card";
-
-    const heading = document.createElement("h2");
-    heading.textContent = event.name;
+    card.className = "event-card";
+    const heading = document.createElement("h3");
+    heading.textContent = event.name || id;
     card.appendChild(heading);
 
     const dateLabel = document.createElement("label");
     dateLabel.textContent = "Event Date";
-    dateLabel.style.display = "block";
-
-    const dateInput = document.createElement("input");
-    dateInput.type = "date";
-    dateInput.className = "event-date";
-    dateInput.value = /^\d{4}-\d{2}-\d{2}$/.test(dateValue)
-      ? dateValue : "";
-    dateInput.style.width = "100%";
-    dateInput.dataset.eventId = event.id;
-    dateLabel.appendChild(dateInput);
+    const date = document.createElement("input");
+    date.type = "date";
+    date.className = "event-date";
+    date.dataset.eventId = id;
+    date.value = dateForInput(saved.date || saved.eventDate || "");
+    dateLabel.appendChild(date);
     card.appendChild(dateLabel);
 
-    const table = document.createElement("table");
-    table.style.width = "100%";
-    table.style.marginTop = "12px";
-
-    const head = document.createElement("tr");
-    ["Category / Distance", "Registration Fee (MMK)"].forEach(text => {
-      const th = document.createElement("th");
-      th.textContent = text;
-      head.appendChild(th);
-    });
-
-    const thead = document.createElement("thead");
-    thead.appendChild(head);
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-
     categories.forEach(category => {
-      const tr = document.createElement("tr");
+      const feeRow = document.createElement("div");
+      feeRow.className = "fee-row";
 
-      const nameCell = document.createElement("td");
-      nameCell.textContent = category;
-      tr.appendChild(nameCell);
+      const categoryLabel = document.createElement("label");
+      categoryLabel.textContent = category;
+      const fee = document.createElement("input");
+      fee.type = "number";
+      fee.min = "0";
+      fee.step = "1";
+      fee.placeholder = "Fee (MMK)";
+      fee.className = "event-fee";
+      fee.dataset.eventId = id;
+      fee.dataset.category = category;
 
-      const feeCell = document.createElement("td");
-      const feeInput = document.createElement("input");
-      feeInput.type = "number";
-      feeInput.min = "0";
-      feeInput.step = "1";
-      feeInput.placeholder = "Enter fee in MMK";
-      feeInput.className = "event-fee";
-      feeInput.dataset.eventId = event.id;
-      feeInput.dataset.category = category;
-      feeInput.style.width = "100%";
+      const savedFee = saved.fees && Object.prototype.hasOwnProperty.call(saved.fees, category)
+        ? saved.fees[category] : "";
+      fee.value = savedFee == null ? "" : savedFee;
 
-      const fee = saved.fees &&
-        Object.prototype.hasOwnProperty.call(saved.fees, category)
-        ? saved.fees[category]
-        : "";
-
-      feeInput.value = fee === null || fee === undefined ? "" : fee;
-      feeCell.appendChild(feeInput);
-      tr.appendChild(feeCell);
-      tbody.appendChild(tr);
+      feeRow.append(categoryLabel, fee);
+      card.appendChild(feeRow);
     });
 
-    table.appendChild(tbody);
-    card.appendChild(table);
-    settingsContainer.appendChild(card);
+    const hidden = document.createElement("input");
+    hidden.type = "hidden";
+    hidden.className = "event-id";
+    hidden.value = id;
+    card.appendChild(hidden);
+    root.appendChild(card);
   });
 }
 
 async function loadEventSettings() {
+  if (!adminToken) {
+    message("eventSettingsMessage", "Please log in first.", "error");
+    return;
+  }
+
   try {
-    showSettingsMessage("Loading event settings...");
-    const data = await api({ action: "getEventSettings" });
-    savedEventSettings = data.events || [];
-    renderEventSettings(savedEventSettings);
-    showSettingsMessage("Event settings loaded.", true);
+    message("eventSettingsMessage", "Loading event settings...");
+    const data = await getApi({action:"getEventSettings", token:adminToken});
+    eventSettings = Array.isArray(data.events) ? data.events : [];
+    renderEventSettings(eventSettings);
+    message("eventSettingsMessage", "Event settings loaded.", "success");
   } catch (error) {
-    showSettingsMessage("Could not load settings: " + error.message);
+    message("eventSettingsMessage",
+      "Event Settings API is not ready yet: " + error.message, "error");
   }
 }
 
 async function saveEventSettings() {
-  const password = document.getElementById("password").value;
-  if (!password) {
-    showSettingsMessage("Enter the admin password first.");
-    document.getElementById("password").focus();
+  if (!adminToken) {
+    message("eventSettingsMessage", "Please log in first.", "error");
     return;
   }
 
-  const configEvents = (window.APP_CONFIG && window.APP_CONFIG.events) || [];
+  try {
+    const ids = [...$("eventSettingsContainer").querySelectorAll(".event-id")];
+    if (!ids.length) throw new Error("No event settings to save.");
 
-  const events = configEvents.map(event => {
-    const dateInput = [...settingsContainer.querySelectorAll(".event-date")]
-      .find(input => input.dataset.eventId === event.id);
+    const events = ids.map(hidden => {
+      const eventId = hidden.value;
+      const dateInput = [...$("eventSettingsContainer").querySelectorAll(".event-date")]
+        .find(input => input.dataset.eventId === eventId);
+      const fees = {};
 
-    const fees = {};
-    settingsContainer.querySelectorAll(".event-fee").forEach(input => {
-      if (input.dataset.eventId !== event.id) return;
-
-      const raw = input.value.trim();
-      if (raw !== "") {
-        const amount = Number(raw);
-        if (!Number.isSafeInteger(amount) || amount < 0) {
-          throw new Error(
-            "Fee must be a whole MMK amount for " +
-            event.name + " - " + input.dataset.category
-          );
+      $("eventSettingsContainer").querySelectorAll(".event-fee").forEach(input => {
+        if (input.dataset.eventId !== eventId) return;
+        const raw = input.value.trim();
+        if (raw === "") {
+          fees[input.dataset.category] = "";
+        } else {
+          const amount = Number(raw);
+          if (!Number.isSafeInteger(amount) || amount < 0) {
+            throw new Error("Enter a valid whole MMK fee for " + input.dataset.category + ".");
+          }
+          fees[input.dataset.category] = amount;
         }
-        fees[input.dataset.category] = amount;
-      } else {
-        fees[input.dataset.category] = "";
-      }
+      });
+
+      return {eventId, date:dateInput ? dateInput.value : "", fees};
     });
 
-    return {
-      eventId: event.id,
-      date: dateInput ? dateInput.value : "",
-      fees
-    };
-  });
+    $("saveSettingsBtn").disabled = true;
+    message("eventSettingsMessage", "Saving event settings...");
 
-  const button = document.getElementById("saveEventSettingsBtn");
-  button.disabled = true;
-
-  try {
-    showSettingsMessage("Saving event settings...");
-    const result = await api({
-      action: "saveEventSettings",
-      adminPassword: password,
+    const response = await postApi({
+      action:"saveEventSettings",
+      token:adminToken,
       events
     });
 
-    showSettingsMessage(
-      result.message || "Event settings saved successfully.",
-      true
-    );
+    message("eventSettingsMessage", response.message || "Event settings saved.", "success");
     await loadEventSettings();
   } catch (error) {
-    showSettingsMessage("Could not save settings: " + error.message);
+    message("eventSettingsMessage", "Could not save settings: " + error.message, "error");
   } finally {
-    button.disabled = false;
+    $("saveSettingsBtn").disabled = !adminToken;
   }
 }
 
-document.getElementById("loadEventSettingsBtn")
-  .addEventListener("click", loadEventSettings);
+function csvEscape(value) {
+  let s = value == null ? "" : String(value);
+  if (/^[\s]*[=+\-@]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
 
-document.getElementById("saveEventSettingsBtn")
-  .addEventListener("click", saveEventSettings);
-
-  function value(record, key) {
-    return record && record[key] != null
-      ? String(record[key])
-      : "";
+function exportCSV() {
+  if (!registrations.length) {
+    message("message", "There are no registrations to export.", "error");
+    return;
   }
 
-  function makeCell(row, content) {
-    const cell = document.createElement("td");
-    if (content instanceof Node) {
-      cell.appendChild(content);
-    } else {
-      cell.textContent = content == null ? "" : String(content);
-    }
-    row.appendChild(cell);
-    return cell;
-  }
-
-  function makeSelect(options, currentValue) {
-    const select = document.createElement("select");
-
-    options.forEach(option => {
-      const el = document.createElement("option");
-      el.value = option;
-      el.textContent = option;
-      el.selected = option === currentValue;
-      select.appendChild(el);
-    });
-
-    return select;
-  }
-
-  function addLine(parent, text, className = "") {
-    const el = document.createElement("div");
-    el.textContent = text;
-    if (className) el.className = className;
-    parent.appendChild(el);
-    return el;
-  }
-
-  function renderSummary(summary) {
-    const container = $("summary");
-    container.replaceChildren();
-
-    const sections = [
-      ["Events", summary && summary.events],
-      ["Categories", summary && summary.categories],
-      ["T-shirt Sizes", summary && summary.shirts],
-      ["Payments", summary && summary.payments],
-      ["Approvals", summary && summary.approvals]
-    ];
-
-    sections.forEach(([title, data]) => {
-      const card = document.createElement("div");
-      card.className = "stat";
-
-      addLine(card, title, "stat-title");
-
-      if (data && typeof data === "object" &&
-          Object.keys(data).length > 0) {
-        Object.entries(data).forEach(([key, count]) => {
-          addLine(card, key + ": " + count, "stat-line");
-        });
-      } else {
-        addLine(card, "No data", "muted small");
-      }
-
-      container.appendChild(card);
-    });
-  }
-
-  function getRelayMembers(record) {
-    const raw = value(record, "Relay Members JSON");
-    if (!raw) return [];
-
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
-  function screenshotLink(fileId) {
-    if (!fileId) return "No screenshot uploaded";
-
-    const link = document.createElement("a");
-    link.href = "https://drive.google.com/open?id=" +
-      encodeURIComponent(fileId);
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.textContent = "Open screenshot";
-    link.title = "Open the uploaded payment screenshot";
-    return link;
-  }
-
-  function renderRegistrations() {
-    const body = $("rows");
-    body.replaceChildren();
-
-    if (!registrations.length) {
-      const tr = document.createElement("tr");
-      const td = makeCell(tr, "No registrations found.");
-      td.colSpan = 10;
-      td.className = "empty";
-      body.appendChild(tr);
-      return;
-    }
-
-    registrations.forEach(record => {
-      const tr = document.createElement("tr");
-
-      // Registration ID and Ticket ID
-      const idCell = document.createElement("div");
-      idCell.className = "record-id";
-
-      const regId = value(record, "Registration ID");
-      const ticketId = value(record, "Ticket ID");
-
-      addLine(idCell, "Reg ID: " + (regId || "—"));
-      addLine(idCell, "Ticket: " + (ticketId || "Not issued"));
-
-      makeCell(tr, idCell);
-
-      // Event and category
-      const eventCell = document.createElement("div");
-      addLine(eventCell, value(record, "Event Name") || "—");
-      addLine(
-        eventCell,
-        value(record, "Race Category/Distance") || "—"
-      );
-      addLine(
-        eventCell,
-        value(record, "Participation Type") || "—",
-        "muted"
-      );
-      makeCell(tr, eventCell);
-
-      // Participant and contact
-      const participantCell = document.createElement("div");
-      addLine(participantCell, value(record, "Name") || "—");
-      addLine(
-        participantCell,
-        "Gender: " + (value(record, "Gender") || "—")
-      );
-      addLine(
-        participantCell,
-        "Email: " + (value(record, "Email") || "—")
-      );
-      addLine(
-        participantCell,
-        "Mobile: " + (value(record, "Mobile No") || "—")
-      );
-      makeCell(tr, participantCell);
-
-      // Relay members and ITRA ID
-      const relayCell = document.createElement("div");
-      const members = getRelayMembers(record);
-
-      if (members.length) {
-        members.forEach((member, index) => {
-          const name = member && member.name
-            ? String(member.name)
-            : "Member " + (index + 1);
-          const gender = member && member.gender
-            ? String(member.gender)
-            : "—";
-          const shirt = member && member.shirtSize
-            ? String(member.shirtSize)
-            : "—";
-
-          addLine(
-            relayCell,
-            name + " (" + gender + ", " + shirt + ")"
-          );
-        });
-      } else {
-        addLine(relayCell, "No relay members");
-      }
-
-      addLine(
-        relayCell,
-        "ITRA ID: " + (value(record, "ITRA ID") || "—"),
-        "muted small"
-      );
-      makeCell(tr, relayCell);
-
-      // Fee and T-shirt
-      const feeCell = document.createElement("div");
-      addLine(
-        feeCell,
-        "Fee: " + (value(record, "Registration Fee") || "—")
-      );
-      addLine(
-        feeCell,
-        "T-shirt: " + (value(record, "T-shirt Size") || "—")
-      );
-      addLine(
-        feeCell,
-        "Participants: " + (value(record, "Participant Count") || "1"),
-        "muted small"
-      );
-      makeCell(tr, feeCell);
-
-      // Screenshot
-      makeCell(tr, screenshotLink(value(record, "Screenshot File ID")));
-
-      // Payment status
-      const paymentSelect = makeSelect(
-        ["Pending", "Verified", "Rejected"],
-        value(record, "Payment Status") || "Pending"
-      );
-      makeCell(tr, paymentSelect);
-
-      // Approval status
-      const approvalSelect = makeSelect(
-        ["Pending", "Approved", "Rejected"],
-        value(record, "Approval Status") || "Pending"
-      );
-      makeCell(tr, approvalSelect);
-
-      // Admin note
-      const noteInput = document.createElement("input");
-      noteInput.type = "text";
-      noteInput.maxLength = 500;
-      noteInput.placeholder = "Admin note";
-      noteInput.value = value(record, "Admin Note");
-      noteInput.setAttribute("aria-label", "Admin note");
-      makeCell(tr, noteInput);
-
-      // Save action
-      const actionCell = makeCell(tr, "");
-      actionCell.className = "actioncell";
-
-      const saveButton = document.createElement("button");
-      saveButton.type = "button";
-      saveButton.textContent = "Save review";
-
-      saveButton.addEventListener("click", async () => {
-        const password = $("password").value;
-
-        if (!password) {
-          setMessage("Enter the admin password first.", "error");
-          $("password").focus();
-          return;
-        }
-
-        const rowNumber = Number(record.rowNumber);
-
-        if (!Number.isInteger(rowNumber) || rowNumber < 2) {
-          setMessage(
-            "This record has no valid row number. Reload registrations.",
-            "error"
-          );
-          return;
-        }
-
-        saveButton.disabled = true;
-        setMessage("Saving review…");
-
-        try {
-          const result = await api({
-            action: "updateRecord",
-            adminPassword: password,
-            rowNumber: rowNumber,
-            paymentStatus: paymentSelect.value,
-            approvalStatus: approvalSelect.value,
-            adminNote: noteInput.value.trim()
-          });
-
-          record["Payment Status"] =
-            result.paymentStatus || paymentSelect.value;
-          record["Approval Status"] =
-            result.approvalStatus || approvalSelect.value;
-          record["Ticket ID"] = result.ticketId || "";
-          record["Admin Note"] = noteInput.value.trim();
-
-          setMessage(
-            "Review saved successfully.\n" +
-            "Ticket access requires Payment = Verified " +
-            "and Approval = Approved.",
-            "success"
-          );
-
-          renderRegistrations();
-        } catch (error) {
-          setMessage(
-            "Could not save review: " +
-            (error.message || "Unknown error"),
-            "error"
-          );
-        } finally {
-          saveButton.disabled = false;
-        }
-      });
-
-      actionCell.appendChild(saveButton);
-      body.appendChild(tr);
-    });
-  }
-
-  async function loadRegistrations() {
-    if (loading) return;
-
-    const password = $("password").value;
-
-    if (!password) {
-      setMessage("Please enter the admin password.", "error");
-      $("password").focus();
-      return;
-    }
-
-    loading = true;
-    $("loadBtn").disabled = true;
-    setMessage("Loading registrations…");
-
-    try {
-      const data = await api({
-        action: "adminList",
-        adminPassword: password
-      });
-
-      if (!Array.isArray(data.rows)) {
-        throw new Error(
-          "Unexpected API response: registration rows are missing."
-        );
-      }
-
-      registrations = data.rows;
-      renderSummary(data.summary || {});
-      renderRegistrations();
-
-      setMessage(
-        "Loaded " + registrations.length + " registrations.",
-        "success"
-      );
-    } catch (error) {
-      setMessage(
-        "Could not load registrations: " +
-        (error.message || "Unknown error"),
-        "error"
-      );
-    } finally {
-      loading = false;
-      $("loadBtn").disabled = false;
-    }
-  }
-
-  function csvEscape(value) {
-    let text = value == null ? "" : String(value);
-
-    // Prevent spreadsheet formula injection in exported CSV.
-    if (/^[\s]*[=+\-@]/.test(text)) {
-      text = "'" + text;
-    }
-
-    return '"' + text.replace(/"/g, '""') + '"';
-  }
-
-  function exportCSV() {
-    if (!registrations.length) {
-      setMessage("Load registrations before exporting CSV.", "error");
-      return;
-    }
-
-    const headers = Object.keys(registrations[0]).filter(key =>
-      key !== "rowNumber" &&
-      key !== "Screenshot File ID"
-    );
-
-    const lines = [
-      headers.map(csvEscape).join(","),
-      ...registrations.map(record =>
-        headers.map(header => csvEscape(record[header])).join(",")
-      )
-    ];
-
-    const blob = new Blob(
-      ["\ufeff" + lines.join("\r\n")],
-      { type: "text/csv;charset=utf-8;" }
-    );
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "swal-sone-event-registrations.csv";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setMessage("CSV export prepared.", "success");
-  }
-
-  $("loadBtn").addEventListener("click", loadRegistrations);
-  $("csvBtn").addEventListener("click", exportCSV);
-
-  $("password").addEventListener("keydown", event => {
-    if (event.key === "Enter") loadRegistrations();
-  });
-
-  try {
-    requireConfig();
-    setMessage("Configuration loaded. Enter your admin password.");
-  } catch (error) {
-    setMessage(error.message, "error");
-  }
+  const excluded = new Set(["rowNumber", "Screenshot File ID", "ScreenshotFileID", "screenshotFileId"]);
+  const headers = [...new Set(registrations.flatMap(record => Object.keys(record)))]
+    .filter(key => !excluded.has(key));
+
+  const lines = [
+    headers.map(csvEscape).join(","),
+    ...registrations.map(record => headers.map(key => csvEscape(record[key])).join(","))
+  ];
+
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "swal-sone-registrations-" + new Date().toISOString().slice(0,10) + ".csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  message("message", "CSV export prepared.", "success");
+}
+
+function logout() {
+  adminToken = "";
+  registrations = [];
+  eventSettings = [];
+  $("password").value = "";
+  $("logoutBtn").disabled = true;
+  $("csvBtn").disabled = true;
+  $("saveSettingsBtn").disabled = true;
+  $("rows").replaceChildren();
+  $("summary").replaceChildren();
+  $("eventSettingsContainer").replaceChildren();
+  message("message", "Logged out. Sign in again to continue.", "muted");
+  message("eventSettingsMessage", "");
+}
+
+$("loginBtn").addEventListener("click", loginAndLoad);
+$("logoutBtn").addEventListener("click", logout);
+$("csvBtn").addEventListener("click", exportCSV);
+$("loadSettingsBtn").addEventListener("click", loadEventSettings);
+$("saveSettingsBtn").addEventListener("click", saveEventSettings);
+$("searchInput").addEventListener("input", renderRegistrations);
+$("eventFilter").addEventListener("change", renderRegistrations);
+$("password").addEventListener("keydown", event => {
+  if (event.key === "Enter") loginAndLoad();
+});
+
+try {
+  checkConfig();
+  message("message", "Configuration loaded. Enter your admin password.");
+} catch (error) {
+  message("message", error.message, "error");
+}
 })();
 </script>
 </body>
