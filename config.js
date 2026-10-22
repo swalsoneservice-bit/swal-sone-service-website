@@ -1,7 +1,7 @@
 
  // Public configuration only. Never put passwords, tokens, or private keys here.
 window.APP_CONFIG = {
-  apiUrl: "https://script.google.com/macros/s/AKfycbw8uXCLSCJpVyzN4q_Ow4f6i-HhZGm34gzOU1GdDABR-Mh6enAxe2Az1dFFMBrvqi13/exec",
+  apiUrl: "https://script.google.com/macros/s/AKfycbyjxDwk7IgZXJfj5VmxOw0eA4VJEzpeIiA12lCRvFFDgxi2Enq2eLZCM4VGg_w_wj48rQ/exec",
 
   qrImageUrl: "kbzpay-qr.jpg",
   brandName: "Swal-Sone Service",
